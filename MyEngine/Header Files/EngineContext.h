@@ -23,9 +23,14 @@ public:
     Camera* GetCamera(){return m_Camera;}
     GLFWwindow* GetWindow(){return m_Window;}
     Shader* GetShader(){return m_Shader;}
-    
+    void InitViewportFramebuffer(int width, int height);
     void Draw();
     void Shutdown();
+    unsigned int GetViewportTexture(){return m_ViewportTexture;}
+    
+    void OnStartControlCam();
+    void OnReleaseCamControl();
+
 public:
     void CreateCube(const char* Name);
     void DeleteRenderable(Renderable* aRenderable);
@@ -38,5 +43,9 @@ private:
     Camera* m_Camera = nullptr;
     Shader* m_Shader = nullptr;
     EditorContext* m_EditorContext = nullptr;
-    
+    float m_ViewportWidth, m_ViewportHeight;
+    unsigned int m_ViewportFBO, m_ViewportTexture, m_ViewportRBO;
+    bool bControllingCamera = false;
+    float m_DeltaTime = 0.0f;    // Time between current frame and last frame
+    float m_LastFrameTime = 0.0f; // Time of last frame
 };

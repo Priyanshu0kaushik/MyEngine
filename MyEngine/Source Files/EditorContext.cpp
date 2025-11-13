@@ -40,17 +40,34 @@ void EditorContext::BeginFrame(){
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    
-    ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
+    static bool dockspaceOpen = true;
+    static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
+
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                   ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+    ImGui::Begin("DockSpace", &dockspaceOpen, windowFlags);
+    ImGui::PopStyleVar(2);
+
+    ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
+    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
+
+    ImGui::End();
 }
 void EditorContext::Render(){
     //Editor Stuff
+    ShowViewport();
     ShowHierarchy();
     DrawInspector();
-    RenameTargetMenu();
-
-    
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     if(io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -67,7 +84,30 @@ void EditorContext::EndFrame(){
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
+void EditorContext::ShowViewport(){
+    ImGui::Begin("Viewport");
 
+    // Make sure ImGui knows your window size
+    ImVec2 size = ImGui::GetContentRegionAvail();
+    ImGui::Image((void*)(intptr_t)m_EngineContext->GetViewportTexture(), size, ImVec2(0,1), ImVec2(1,0));
+    
+    bool viewportFocused = ImGui::IsWindowHovered();
+    bool rightMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+
+    if (!bCameraCapturing && viewportFocused && rightMouseDown) {
+        bCameraCapturing = true;
+        m_EngineContext->OnStartControlCam();
+        glfwSetInputMode(m_EngineContext->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+    }
+    else if (!rightMouseDown && bCameraCapturing) {
+        bCameraCapturing = false;
+        m_EngineContext->OnReleaseCamControl();
+        glfwSetInputMode(m_EngineContext->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    ImGui::End();
+}
 void EditorContext::ShowHierarchy(){
     ImGui::Begin("Hierarchy");
     std::vector<std::unique_ptr<Renderable>>& renderables = m_EngineContext->GetScene()->GetRenders();
@@ -82,12 +122,9 @@ void EditorContext::ShowHierarchy(){
         if (ImGui::Selectable(label.c_str(), isSelected))
         {
             m_SelectedRenderable = r; // select this one
+            
         }
-        if (ImGui::BeginPopupContextItem("object_context_menu")) { // <-- unique popup ID
-            if (ImGui::MenuItem("Rename")) {
-                ImGui::OpenPopup("Rename Object");
-                m_RenameTarget = r;
-            }
+        if (ImGui::BeginPopupContextItem("object_context_menu")) {
             if (ImGui::MenuItem("Delete")) {
                 if(m_EngineContext){
                     m_EngineContext->DeleteRenderable(r);
@@ -102,26 +139,6 @@ void EditorContext::ShowHierarchy(){
         m_EngineContext->CreateCube("Cube ");
     }
     ImGui::End();
-}
-void EditorContext::RenameTargetMenu(){
-    if (ImGui::BeginPopup("Rename Object")) {
-        static char nameBuffer[128];
-        std::cout<<"Renaming";
-        ImGui::InputText("New Name", nameBuffer, IM_ARRAYSIZE(nameBuffer));
-        
-        if (ImGui::Button("OK")) {
-            if (m_RenameTarget) {
-                m_RenameTarget->Rename(nameBuffer);
-            }
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel")) {
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
-    }
 }
 
 void EditorContext::DrawInspector()

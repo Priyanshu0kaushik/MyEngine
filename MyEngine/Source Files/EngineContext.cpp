@@ -18,13 +18,40 @@ EngineContext::EngineContext(int width, int height, const char* title){
 
     //GLFW Window
     InitWindow(width, height, title);
-    
+    InitViewportFramebuffer(500,500);
     //ImGUI
     m_EditorContext = new EditorContext();
     m_EditorContext->Init(m_Window, this);
     
     m_Scene = new Scene();
     m_Camera = new Camera();
+}
+
+void EngineContext::InitViewportFramebuffer(int width, int height){
+    m_ViewportWidth = width;
+    m_ViewportHeight = height;
+    
+    glGenFramebuffers(1, &m_ViewportFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFBO);
+
+    // Color texture
+    glGenTextures(1, &m_ViewportTexture);
+    glBindTexture(GL_TEXTURE_2D, m_ViewportTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ViewportTexture, 0);
+
+    // Depth buffer
+    glGenRenderbuffers(1, &m_ViewportRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_ViewportRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_ViewportRBO);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Incomplete!" << std::endl;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void EngineContext::InitWindow(int width, int height, const char* title){
@@ -55,14 +82,31 @@ void EngineContext::InitWindow(int width, int height, const char* title){
 
 }
 
+void EngineContext::OnStartControlCam(){
+    bControllingCamera = true;
+}
+
+void EngineContext::OnReleaseCamControl(){
+    bControllingCamera = false;
+    m_Camera->OnReleaseCamControl();
+}
+
 
 void EngineContext::Draw(){
     while (!glfwWindowShouldClose(m_Window))
     {
+        float currentFrame = glfwGetTime();
+        m_DeltaTime = currentFrame - m_LastFrameTime;
+        m_LastFrameTime = currentFrame;
+        
         m_EditorContext->BeginFrame();
 
         /* Render here */
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFBO);
+        glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        if(bControllingCamera) m_Camera->ProcessInput(m_Window, m_DeltaTime);
         
         if(m_Shader && m_Camera){
             m_Shader->SetMatrix4(m_Camera->GetView(), "view");
@@ -73,10 +117,11 @@ void EngineContext::Draw(){
             m_Shader->Use();
             m_Scene->Render(*m_Shader);
         }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // ImGUI
         m_EditorContext->Render();
-        
+
         glfwSwapBuffers(m_Window);
         glfwPollEvents();
     }

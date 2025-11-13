@@ -14,7 +14,7 @@ int main(void)
 {
 
 
-    EngineContext* engineContext = new EngineContext(600,400,"MyEngine");
+    EngineContext* engineContext = new EngineContext(1000,700,"MyEngine");
     
     Shader* shader = new Shader("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Shaders/VertexShader.glsl",
                                         "/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Shaders/FragmentShader.glsl");

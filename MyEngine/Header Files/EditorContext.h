@@ -20,6 +20,7 @@ public:
     void EndFrame();
     void Render();
 private:
+    void ShowViewport();
     void ShowHierarchy();
     void DrawInspector();
     void RenameTargetMenu();
@@ -28,4 +29,7 @@ private:
     EngineContext* m_EngineContext = nullptr;
     Renderable* m_SelectedRenderable = nullptr;
     Renderable* m_RenameTarget = nullptr;
+    
+    bool bCameraCapturing = false;
+
 };
