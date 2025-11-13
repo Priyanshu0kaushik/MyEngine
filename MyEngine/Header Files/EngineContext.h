@@ -33,7 +33,7 @@ public:
     
     static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
         EngineContext* engineContext = reinterpret_cast<EngineContext*>(glfwGetWindowUserPointer(window));
-        if (engineContext){
+        if (engineContext && engineContext->bControllingCamera){
             engineContext->GetCamera()->ProcessMouseScroll(static_cast<float>(yoffset));
         }
     }

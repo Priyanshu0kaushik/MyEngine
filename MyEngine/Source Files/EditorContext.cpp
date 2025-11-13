@@ -13,6 +13,7 @@
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <iostream>
 
 EditorContext::EditorContext(){
     
@@ -122,6 +123,7 @@ void EditorContext::ShowHierarchy(){
         if (ImGui::Selectable(label.c_str(), isSelected))
         {
             m_SelectedRenderable = r; // select this one
+            strcpy(m_SelectedRenderName, m_SelectedRenderable->GetName().c_str());
             
         }
         if (ImGui::BeginPopupContextItem("object_context_menu")) {
@@ -136,7 +138,7 @@ void EditorContext::ShowHierarchy(){
 
     }
     if (ImGui::Button("Add Cube")) {
-        m_EngineContext->CreateCube("Cube ");
+        m_EngineContext->CreateCube("Cube");
     }
     ImGui::End();
 }
@@ -145,20 +147,50 @@ void EditorContext::DrawInspector()
 {
     ImGui::Begin("Inspector");
 
+    
     if (m_SelectedRenderable)
     {
+        ImGui::Text("Name");
+        RenameRender();
+        
         glm::vec3 pos = m_SelectedRenderable->GetPosition();
-        if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+        ImGui::Text("Position");
+        if (ImGui::DragFloat3("###Position", &pos.x, 0.1f))
             m_SelectedRenderable->SetPosition(pos);
 
         glm::vec3 rot = m_SelectedRenderable->GetRotation();
-        if (ImGui::DragFloat3("Rotation", &rot.x, 0.1f))
+        ImGui::Text("Rotation");
+        if (ImGui::DragFloat3("###Rotation", &rot.x, 0.1f))
             m_SelectedRenderable->SetRotation(rot);
 
         glm::vec3 scale = m_SelectedRenderable->GetScale();
-        if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 10.0f))
+        ImGui::Text("Scale");
+        if (ImGui::DragFloat3("###Scale", &scale.x, 0.1f, 0.01f, 10.0f))
             m_SelectedRenderable->SetScale(scale);
     }
 
     ImGui::End();
+}
+
+void EditorContext::RenameRender(){
+    bool enterPressed =
+        ImGui::InputText(
+            "###Name",
+            m_SelectedRenderName,
+            IM_ARRAYSIZE(m_SelectedRenderName),
+            ImGuiInputTextFlags_EnterReturnsTrue
+        );
+    if (enterPressed || ImGui::IsItemDeactivatedAfterEdit())
+    {
+        std::string trimmed = m_SelectedRenderName;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t\n"));
+        trimmed.erase(trimmed.find_last_not_of(" \t\n") + 1);
+        
+        strcpy(m_SelectedRenderName, trimmed.c_str());
+        if(m_SelectedRenderable && !trimmed.empty() &&
+           trimmed !=m_SelectedRenderable->GetName().c_str()){
+            if(m_EngineContext) m_EngineContext->GetScene()->RenameRenderable(m_SelectedRenderable, trimmed.c_str());
+        }
+        else strcpy(m_SelectedRenderName, m_SelectedRenderable->GetName().c_str());
+    }
 }

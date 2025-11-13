@@ -49,6 +49,7 @@ private:
     float m_Yaw = -90.0f;
     float m_Pitch = 0.0f;
     
+    float m_CameraSpeedVar = 2.5f;
     bool bFirstMouse = true;
 
     

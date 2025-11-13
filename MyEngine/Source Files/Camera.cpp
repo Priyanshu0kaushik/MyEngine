@@ -38,7 +38,7 @@ void Camera::ProcessInput(GLFWwindow* aWindow, float aDeltaTime){
 
 
 void Camera::ProcessKeyboardInput(GLFWwindow* aWindow ,float aDeltaTime){
-    const float cameraSpeed = 2.5f * aDeltaTime; // adjust accordingly
+    const float cameraSpeed = m_CameraSpeedVar * aDeltaTime; 
     if (glfwGetKey(aWindow, GLFW_KEY_W) == GLFW_PRESS)
         m_CameraPos += cameraSpeed * m_Front;
     if (glfwGetKey(aWindow, GLFW_KEY_S) == GLFW_PRESS)
@@ -54,6 +54,7 @@ void Camera::ProcessKeyboardInput(GLFWwindow* aWindow ,float aDeltaTime){
 }
 
 void Camera::ProcessMouseInput(GLFWwindow* aWindow, float aDeltaTime){
+    
     static double lastX = 0.0, lastY = 0.0;
 
     double xpos, ypos;
@@ -95,7 +96,6 @@ void Camera::OnReleaseCamControl(){
 }
 
 void Camera::ProcessMouseScroll(double yoffset){
-    
     m_Fov -= yoffset;
     if (m_Fov < 1.0f) m_Fov = 1.0f;
     if (m_Fov > 90.0f) m_Fov = 90.0f;

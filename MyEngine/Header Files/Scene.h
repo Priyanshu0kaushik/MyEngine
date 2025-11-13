@@ -22,7 +22,11 @@ public:
         return renders;
     }
     void Render(Shader& aShader);
+    void RenameRenderable(Renderable* r, const char* newName);
+
 private:
+    int NameExistCount(const char* aName);
+
     Camera* m_Camera;
     std::vector<std::unique_ptr<Renderable>> renders;
 };

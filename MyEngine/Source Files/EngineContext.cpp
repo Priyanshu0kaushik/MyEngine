@@ -142,7 +142,7 @@ void EngineContext::Cleanup(){
 void EngineContext::CreateCube(const char *Name){
     if(!m_Scene) return;
     std::unique_ptr<Cube> cube = std::make_unique<Cube>();
-    cube->Rename(Name);
+    m_Scene->RenameRenderable(cube.get(), "Cube");
     m_Scene->AddRenderable(std::move(cube));
 }
 

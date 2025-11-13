@@ -9,7 +9,7 @@
 
 Cube::Cube()
 {
-    MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/brick.jpg");
+    MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/monkey.jpeg");
     float vertices[] = {
         // Positions         // Colors        // Texture Coords
         // Front face
@@ -110,7 +110,6 @@ void Cube::Render(Shader& aShader)
         glBindTexture(GL_TEXTURE_2D, MyTexture->TextureObject);
         glUniform1i(glGetUniformLocation(aShader.shaderProgram, "texture1"), 0);
     }
-
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

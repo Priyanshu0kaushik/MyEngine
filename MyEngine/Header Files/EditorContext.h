@@ -23,13 +23,14 @@ private:
     void ShowViewport();
     void ShowHierarchy();
     void DrawInspector();
-    void RenameTargetMenu();
+    void RenameRender();
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;
     Renderable* m_SelectedRenderable = nullptr;
-    Renderable* m_RenameTarget = nullptr;
     
+    char m_SelectedRenderName[128] = "Name";
+
     bool bCameraCapturing = false;
 
 };
