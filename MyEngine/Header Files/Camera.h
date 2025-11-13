@@ -8,6 +8,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 class GLFWwindow;
 class Camera{
 public:
@@ -25,12 +26,14 @@ public:
     void SetAspectRatio(float aRatio){ m_AspectRatio = aRatio;}
     void SetAspectRatio(float width, float height){ m_AspectRatio = width/height;}
     void SetNearFar(float aNear, float aFar){ m_Near = aNear; m_Far = aFar;}
-    
     void OnReleaseCamControl();
     void ProcessInput(GLFWwindow* aWindow, float aDeltaTime);
+    void ProcessMouseScroll(double yoffset);
+
 private:
     void ProcessKeyboardInput(GLFWwindow* aWindow, float aDeltaTime);
     void ProcessMouseInput(GLFWwindow* aWindow, float aDeltaTime);
+
 
 private:
     glm::vec3 m_CameraPos = glm::vec3(0.0f, 0.0f, 3.0f);

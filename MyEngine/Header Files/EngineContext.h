@@ -8,11 +8,11 @@
 
 #include "glad.h"
 #include "glfw3.h"
+#include "Camera.h"
 
 class Scene;
 class Shader;
 class EditorContext;
-class Camera;
 class Renderable;
 
 class EngineContext{
@@ -30,7 +30,13 @@ public:
     
     void OnStartControlCam();
     void OnReleaseCamControl();
-
+    
+    static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
+        EngineContext* engineContext = reinterpret_cast<EngineContext*>(glfwGetWindowUserPointer(window));
+        if (engineContext){
+            engineContext->GetCamera()->ProcessMouseScroll(static_cast<float>(yoffset));
+        }
+    }
 public:
     void CreateCube(const char* Name);
     void DeleteRenderable(Renderable* aRenderable);

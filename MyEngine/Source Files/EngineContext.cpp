@@ -7,12 +7,15 @@
 
 #include "EngineContext.h"
 #include "Scene.h"
-#include "EditorContext.h"
 #include "Camera.h"
+#include "EditorContext.h"
 #include "Cube.h"
 
 
 EngineContext::EngineContext(int width, int height, const char* title){
+    m_Scene = new Scene();
+    m_Camera = new Camera();
+    
     if (!glfwInit())
         throw std::runtime_error("Failed to init GLFW");
 
@@ -23,8 +26,7 @@ EngineContext::EngineContext(int width, int height, const char* title){
     m_EditorContext = new EditorContext();
     m_EditorContext->Init(m_Window, this);
     
-    m_Scene = new Scene();
-    m_Camera = new Camera();
+
 }
 
 void EngineContext::InitViewportFramebuffer(int width, int height){
@@ -76,6 +78,10 @@ void EngineContext::InitWindow(int width, int height, const char* title){
     {
         throw std::runtime_error("Failed to initialize GLAD");
     }
+    
+    glfwSetWindowUserPointer(m_Window, this);
+    glfwSetScrollCallback(m_Window, EngineContext::ScrollCallback);
+    
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     glEnable(GL_DEPTH_TEST);
@@ -109,12 +115,12 @@ void EngineContext::Draw(){
         if(bControllingCamera) m_Camera->ProcessInput(m_Window, m_DeltaTime);
         
         if(m_Shader && m_Camera){
+            m_Shader->Use();
             m_Shader->SetMatrix4(m_Camera->GetView(), "view");
             m_Shader->SetMatrix4(m_Camera->GetProjection(), "projection");
         }
 
-        if(m_Scene && m_Scene){
-            m_Shader->Use();
+        if(m_Scene){
             m_Scene->Render(*m_Shader);
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

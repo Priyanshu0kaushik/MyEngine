@@ -93,3 +93,10 @@ void Camera::OnReleaseCamControl(){
     bFirstMouse = true;
 
 }
+
+void Camera::ProcessMouseScroll(double yoffset){
+    
+    m_Fov -= yoffset;
+    if (m_Fov < 1.0f) m_Fov = 1.0f;
+    if (m_Fov > 90.0f) m_Fov = 90.0f;
+}
