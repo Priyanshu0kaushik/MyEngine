@@ -29,7 +29,40 @@ void EditorContext::Init(GLFWwindow* aWindow, EngineContext* engine){
     io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     // Optionally enable multi-viewport (separate OS windows)
     io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-    ImGui::StyleColorsDark(); // or StyleColorsClassic()
+//    ImGui::StyleColorsDark(); // or StyleColorsClassic()
+    
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    colors[ImGuiCol_WindowBg]         = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
+    colors[ImGuiCol_Header]           = ImVec4(0.20f, 0.205f, 0.21f, 1.00f);
+    colors[ImGuiCol_HeaderHovered]    = ImVec4(0.25f, 0.255f, 0.26f, 1.00f);
+    colors[ImGuiCol_HeaderActive]     = ImVec4(0.30f, 0.305f, 0.31f, 1.00f);
+
+    colors[ImGuiCol_Button]           = ImVec4(0.20f, 0.205f, 0.21f, 1.00f);
+    colors[ImGuiCol_ButtonHovered]    = ImVec4(0.25f, 0.255f, 0.26f, 1.00f);
+    colors[ImGuiCol_ButtonActive]     = ImVec4(0.15f, 0.150f, 0.155f, 1.00f);
+
+    colors[ImGuiCol_FrameBg]          = ImVec4(0.20f, 0.205f, 0.21f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]   = ImVec4(0.25f, 0.255f, 0.26f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]    = ImVec4(0.30f, 0.305f, 0.31f, 1.00f);
+
+    colors[ImGuiCol_Tab]              = ImVec4(0.15f, 0.150f, 0.155f, 1.00f);
+    colors[ImGuiCol_TabHovered]       = ImVec4(0.38f, 0.380f, 0.385f, 1.00f);
+    colors[ImGuiCol_TabActive]        = ImVec4(0.28f, 0.280f, 0.285f, 1.00f);
+    colors[ImGuiCol_TabUnfocused]     = ImVec4(0.15f, 0.150f, 0.155f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.20f, 0.205f, 0.21f, 1.00f);
+    
+    colors[ImGuiCol_TitleBg]            = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
+    colors[ImGuiCol_TitleBgActive]      = ImVec4(0.15f, 0.155f, 0.16f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]   = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
+
+    // Docking
+    colors[ImGuiCol_DockingPreview]     = ImVec4(0.28f, 0.280f, 0.285f, 1.00f);
+    colors[ImGuiCol_DockingEmptyBg]     = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
+
+    // Menu bar
+    colors[ImGuiCol_MenuBarBg]          = ImVec4(0.14f, 0.145f, 0.15f, 1.00f);
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(aWindow, true);
@@ -85,10 +118,10 @@ void EditorContext::EndFrame(){
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
+
 void EditorContext::ShowViewport(){
     ImGui::Begin("Viewport");
 
-    // Make sure ImGui knows your window size
     ImVec2 size = ImGui::GetContentRegionAvail();
     ImGui::Image((void*)(intptr_t)m_EngineContext->GetViewportTexture(), size, ImVec2(0,1), ImVec2(1,0));
     
@@ -107,8 +140,32 @@ void EditorContext::ShowViewport(){
         glfwSetInputMode(m_EngineContext->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
+    DisplayFPS();
     ImGui::End();
 }
+
+void EditorContext::DisplayFPS(){
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 windowSize = ImGui::GetWindowSize();
+    int FPS=0;
+    if(m_EngineContext) FPS = m_EngineContext->GetFPS();
+    std::string text = "FPS: " + std::to_string(FPS);
+    ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+
+    // Padding from the corner
+    ImVec2 padding{20.0f,30.f};
+
+    // Position: top-right
+    ImVec2 pos = ImVec2(
+        windowPos.x + windowSize.x - textSize.x - padding.x,
+        windowPos.y + padding.y
+    );
+
+    // Draw with shadow for readability
+    drawList->AddText(pos, IM_COL32(255, 255, 255, 255), text.c_str());
+}
+
 void EditorContext::ShowHierarchy(){
     ImGui::Begin("Hierarchy");
     std::vector<std::unique_ptr<Renderable>>& renderables = m_EngineContext->GetScene()->GetRenders();

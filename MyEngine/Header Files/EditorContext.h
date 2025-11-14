@@ -24,6 +24,7 @@ private:
     void ShowHierarchy();
     void DrawInspector();
     void RenameRender();
+    void DisplayFPS();
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;

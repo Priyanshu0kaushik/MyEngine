@@ -27,7 +27,7 @@ public:
     void Draw();
     void Shutdown();
     unsigned int GetViewportTexture(){return m_ViewportTexture;}
-    
+    int GetFPS(){ return (int)(1/m_DeltaTime);}
     void OnStartControlCam();
     void OnReleaseCamControl();
     
