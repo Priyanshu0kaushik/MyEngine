@@ -7,9 +7,10 @@
 
 #pragma once
 #include "imgui.h"
+#include "ECS/Coordinator.h"
+
 class GLFWwindow;
 class EngineContext;
-class Renderable;
 
 class EditorContext{
 public:
@@ -28,8 +29,8 @@ private:
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;
-    Renderable* m_SelectedRenderable = nullptr;
-    
+    Entity m_SelectedEntity;
+    Coordinator* m_Coordinator;
     char m_SelectedRenderName[128] = "Name";
 
     bool bCameraCapturing = false;

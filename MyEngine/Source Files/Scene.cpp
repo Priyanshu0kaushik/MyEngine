@@ -6,49 +6,79 @@
 //
 #include "Scene.h"
 #include "Shader.h"
+#include "Components.h"
+#include "RenderSystem.h"
 
-Scene::Scene(){
+
+Entity Scene::AddEntity(char* aName, uint32_t meshID, std::shared_ptr<Texture> texture)
+{
+    Entity e = m_Coordinator.CreateEntity();
+
+    // Add transform component
+    TransformComponent transform{};
+    transform.position = {0.0f, 0.0f, 0.0f};
+    transform.rotation = {0.0f, 0.0f, 0.0f};
+    transform.scale = {1.0f, 1.0f, 1.0f};
+    m_Coordinator.AddComponent(e, transform);
+
+    // Add mesh component
+    MeshComponent mesh{};
+    mesh.meshID = meshID;
+    mesh.MyTexture = texture;
+    mesh.uploaded = false;
+    m_Coordinator.AddComponent(e, mesh);
     
-}
-void Scene::AddRenderable(std::unique_ptr<Renderable> aRender){
-    renders.push_back(std::move(aRender));
-}
-
-void Scene::Render(Shader& aShader){
-    for (const auto& render : renders) {
-        render->Render(aShader);  // use -> to access the object
-    }
+    RenameEntity(e, aName);
+    return e;
 }
 
-void Scene::RemoveRenderable(Renderable* aRender){
-    renders.erase(std::remove_if(renders.begin(), renders.end(), [aRender](const std::unique_ptr<Renderable>& r) { return r.get() == aRender;}), renders.end());
+void Scene::RemoveEntity(Entity e)
+{
+    m_Coordinator.DestroyEntity(e);
 }
 
-void Scene::RenameRenderable(Renderable* r, const char* newName){
-    if(!r) return;
-    std::string name(newName);
-    
-    int count = NameExistCount(name.c_str());
-    if(count== 0) r->Rename(name.c_str());
-    else{
+void Scene::RenameEntity(Entity e, const char* newName)
+{
+    std::cout<<"What"<<std::endl;
+
+    if(NameComponent* nameComponent = m_Coordinator.GetComponent<NameComponent>(e))
+    {
+        int count = NameExistCount(e, newName);
+        if(count==0){
+            nameComponent->Name = newName;
+            return;
+        }
+        std::string name(newName);
         while(true){
             std::string suffix = "_"+std::to_string(count);
             std::string tempname = name + suffix;
-            int n = NameExistCount(tempname.c_str());
+            int n = NameExistCount(e, tempname.c_str());
             if(n == 0){
-                r->Rename(tempname.c_str());
+                nameComponent->Name = tempname;
                 return;
             }
             else count++;
         }
     }
+
 }
 
+void Scene::Render(Shader& shader)
+{
+    renderSystem->Render(shader);
+}
 
-int Scene::NameExistCount(const char* aName){
+int Scene::NameExistCount(Entity e, const char* aName){
     int count = 0;
-    for(auto& render : renders){
-        if (render->GetName() == aName) count++;
+    const std::vector<Entity>& aliveEntities = m_Coordinator.GetAliveEntities();
+    std::cout<<"NameExistCount"<< aliveEntities.size() <<std::endl;
+    for(auto entity : aliveEntities){
+        std::cout<<"EntityExist"<<std::endl;
+        if(entity == e) continue;
+        if(NameComponent* nameComponent = m_Coordinator.GetComponent<NameComponent>(entity)){
+            std::cout<<"NameCompExist"<<std::endl;
+            if(nameComponent->Name == aName) count++;
+        }
     }
     return count;
 }

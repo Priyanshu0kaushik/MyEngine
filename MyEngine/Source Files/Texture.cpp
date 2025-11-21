@@ -12,6 +12,7 @@
 #include "stb_image.h"
 
 Texture::Texture(const char* aPath){
+    stbi_set_flip_vertically_on_load(true);
     int Channels = 0;
     unsigned char *data = stbi_load(aPath, &Width, &Height, &Channels, 0);
 

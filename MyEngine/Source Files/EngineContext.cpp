@@ -9,12 +9,18 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "EditorContext.h"
-#include "Cube.h"
+#include "Texture.h"
+#include "Coordinator.h"
+#include "RenderSystem.h"
+#include "MeshManager.h"
+
 
 
 EngineContext::EngineContext(int width, int height, const char* title){
-    m_Scene = new Scene();
-    m_Camera = new Camera();
+    
+    m_Coordinator = new Coordinator();
+    m_Coordinator->Init();
+    
     
     if (!glfwInit())
         throw std::runtime_error("Failed to init GLFW");
@@ -26,6 +32,23 @@ EngineContext::EngineContext(int width, int height, const char* title){
     m_EditorContext = new EditorContext();
     m_EditorContext->Init(m_Window, this);
     
+
+    m_Coordinator->RegisterComponent<TransformComponent>();
+    m_Coordinator->RegisterComponent<MeshComponent>();
+    
+    auto renderSystem = m_Coordinator->RegisterSystem<RenderSystem>();
+    renderSystem->SetCoordinator(m_Coordinator);
+    m_Scene = new Scene(*m_Coordinator, renderSystem);
+    m_Camera = new Camera();
+
+
+    Signature signature;
+    signature.set(m_Coordinator->GetComponentType<TransformComponent>());
+    signature.set(m_Coordinator->GetComponentType<MeshComponent>());
+    m_Coordinator->SetSystemSignature<RenderSystem>(signature);
+    
+    MeshManager::Allocate();
+
 
 }
 
@@ -137,21 +160,24 @@ void EngineContext::Cleanup(){
     delete m_Camera;
     delete m_Scene;
     delete m_EditorContext;
+    delete m_Coordinator;
 }
 
 void EngineContext::CreateCube(const char *Name){
     if(!m_Scene) return;
-    std::unique_ptr<Cube> cube = std::make_unique<Cube>();
-    m_Scene->RenameRenderable(cube.get(), "Cube");
-    m_Scene->AddRenderable(std::move(cube));
+    std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/monkey.jpeg");
+    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/quadPlane.obj");
+    m_Scene->AddEntity("Entity", id, MyTexture);
+
 }
 
-void EngineContext::DeleteRenderable(Renderable* aRenderable){
-    if(m_Scene) m_Scene->RemoveRenderable(aRenderable);
+void EngineContext::DeleteEntity(Entity aEntity){
+    if(m_Scene) m_Scene->RemoveEntity(aEntity);
 }
 
 void EngineContext::Shutdown(){
     m_EditorContext->EndFrame();
+    MeshManager::DeAllocate();
     Cleanup();
     glfwTerminate();
 }

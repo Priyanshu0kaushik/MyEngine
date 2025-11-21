@@ -15,12 +15,14 @@
 #include "imgui_impl_opengl3.h"
 #include <iostream>
 
+
 EditorContext::EditorContext(){
     
 }
 
 void EditorContext::Init(GLFWwindow* aWindow, EngineContext* engine){
     if(engine) m_EngineContext = engine;
+    m_Coordinator = engine->GetCoordinator();
     
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -98,7 +100,6 @@ void EditorContext::BeginFrame(){
     ImGui::End();
 }
 void EditorContext::Render(){
-    //Editor Stuff
     ShowViewport();
     ShowHierarchy();
     DrawInspector();
@@ -153,41 +154,40 @@ void EditorContext::DisplayFPS(){
     std::string text = "FPS: " + std::to_string(FPS);
     ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
 
-    // Padding from the corner
     ImVec2 padding{20.0f,30.f};
 
-    // Position: top-right
     ImVec2 pos = ImVec2(
         windowPos.x + windowSize.x - textSize.x - padding.x,
         windowPos.y + padding.y
     );
 
-    // Draw with shadow for readability
     drawList->AddText(pos, IM_COL32(255, 255, 255, 255), text.c_str());
 }
 
 void EditorContext::ShowHierarchy(){
     ImGui::Begin("Hierarchy");
-    std::vector<std::unique_ptr<Renderable>>& renderables = m_EngineContext->GetScene()->GetRenders();
-    for (size_t i = 0; i < renderables.size(); i++)
+    const std::vector<Entity>& aliveEntities = m_Coordinator->GetAliveEntities();
+    
+
+    for (size_t i = 0; i < aliveEntities.size(); i++)
     {
-        Renderable* r = renderables[i].get();
+        Entity e = aliveEntities[i];
+        std::string label = "EntityNameDefault";
+        if(NameComponent* nC = m_Coordinator->GetComponent<NameComponent>(e)) label = nC->Name;
 
-        std::string label = r->GetName();
-
-        // Selectable item
-        bool isSelected = (m_SelectedRenderable == r);
+        bool isSelected = (m_SelectedEntity == e);
         if (ImGui::Selectable(label.c_str(), isSelected))
         {
-            m_SelectedRenderable = r; // select this one
-            strcpy(m_SelectedRenderName, m_SelectedRenderable->GetName().c_str());
+            m_SelectedEntity = e;
+            strcpy(m_SelectedRenderName, m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity)->Name.c_str());
             
         }
         if (ImGui::BeginPopupContextItem("object_context_menu")) {
-            if (ImGui::MenuItem("Delete")) {
+            if (ImGui::MenuItem("Delete"))
+            {
                 if(m_EngineContext){
-                    m_EngineContext->DeleteRenderable(r);
-                    m_SelectedRenderable = nullptr;
+                    m_EngineContext->DeleteEntity(e);
+                    m_SelectedEntity = UINT32_MAX;
                 }
             }
             ImGui::EndPopup();
@@ -205,25 +205,26 @@ void EditorContext::DrawInspector()
     ImGui::Begin("Inspector");
 
     
-    if (m_SelectedRenderable)
+    if (m_Coordinator->DoesEntityExist(m_SelectedEntity))
     {
         ImGui::Text("Name");
         RenameRender();
-        
-        glm::vec3 pos = m_SelectedRenderable->GetPosition();
+        TransformComponent* tc = m_Coordinator->GetComponent<TransformComponent>(m_SelectedEntity);
+        if(!tc) return;
+        glm::vec3 pos = tc->position;
         ImGui::Text("Position");
         if (ImGui::DragFloat3("###Position", &pos.x, 0.1f))
-            m_SelectedRenderable->SetPosition(pos);
+            tc->position=pos;
 
-        glm::vec3 rot = m_SelectedRenderable->GetRotation();
+        glm::vec3 rot = tc->rotation;
         ImGui::Text("Rotation");
         if (ImGui::DragFloat3("###Rotation", &rot.x, 0.1f))
-            m_SelectedRenderable->SetRotation(rot);
+            tc->rotation = rot;
 
-        glm::vec3 scale = m_SelectedRenderable->GetScale();
+        glm::vec3 scale = tc->scale;
         ImGui::Text("Scale");
         if (ImGui::DragFloat3("###Scale", &scale.x, 0.1f, 0.01f, 10.0f))
-            m_SelectedRenderable->SetScale(scale);
+            tc->scale = scale;
     }
 
     ImGui::End();
@@ -244,10 +245,11 @@ void EditorContext::RenameRender(){
         trimmed.erase(trimmed.find_last_not_of(" \t\n") + 1);
         
         strcpy(m_SelectedRenderName, trimmed.c_str());
-        if(m_SelectedRenderable && !trimmed.empty() &&
-           trimmed !=m_SelectedRenderable->GetName().c_str()){
-            if(m_EngineContext) m_EngineContext->GetScene()->RenameRenderable(m_SelectedRenderable, trimmed.c_str());
+        NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
+        if(m_Coordinator->DoesEntityExist(m_SelectedEntity) && !trimmed.empty() &&
+           trimmed !=nameComponent->Name.c_str()){
+            if(m_EngineContext) m_EngineContext->GetScene()->RenameEntity(m_SelectedEntity, trimmed.c_str());
         }
-        else strcpy(m_SelectedRenderName, m_SelectedRenderable->GetName().c_str());
+        else strcpy(m_SelectedRenderName, nameComponent->Name.c_str());
     }
 }

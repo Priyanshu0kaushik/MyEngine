@@ -9,6 +9,7 @@
 #include "glad.h"
 #include "glfw3.h"
 #include "Camera.h"
+#include "ECS/Coordinator.h"
 
 class Scene;
 class Shader;
@@ -23,6 +24,7 @@ public:
     Camera* GetCamera(){return m_Camera;}
     GLFWwindow* GetWindow(){return m_Window;}
     Shader* GetShader(){return m_Shader;}
+    Coordinator* GetCoordinator(){return m_Coordinator;}
     void InitViewportFramebuffer(int width, int height);
     void Draw();
     void Shutdown();
@@ -39,11 +41,12 @@ public:
     }
 public:
     void CreateCube(const char* Name);
-    void DeleteRenderable(Renderable* aRenderable);
+    void DeleteEntity(Entity aEntity);
 private:
     void InitWindow(int width, int height, const char* title);
     void Cleanup();
 private:
+    Coordinator* m_Coordinator = nullptr;
     GLFWwindow* m_Window = nullptr;
     Scene* m_Scene = nullptr;
     Camera* m_Camera = nullptr;

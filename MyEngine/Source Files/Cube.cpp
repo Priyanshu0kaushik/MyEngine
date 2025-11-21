@@ -6,10 +6,12 @@
 //
 
 #include "Cube.h"
+#include "MeshManager.h"
 
 Cube::Cube()
 {
     MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/monkey.jpeg");
+//    Mesh vertices1 = MeshManager::LoadDataFromObj("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/plane.obj");
     float vertices[] = {
         // Positions         // Colors        // Texture Coords
         // Front face

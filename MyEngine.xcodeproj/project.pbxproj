@@ -33,9 +33,22 @@
 		85AD43AF2EAF7E9500778F66 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		85C21AF62ECAA1E6008EB329 /* Exceptions for "MyEngine" folder in "Compile Sources" phase from "MyEngine" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 85AD40852EAF77D300778F66 /* Sources */;
+			membershipExceptions = (
+				"Header Files/ECS/ECSSystemManager.h",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		85AD408B2EAF77D300778F66 /* MyEngine */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				85C21AF62ECAA1E6008EB329 /* Exceptions for "MyEngine" folder in "Compile Sources" phase from "MyEngine" target */,
+			);
 			path = MyEngine;
 			sourceTree = "<group>";
 		};
@@ -120,6 +133,7 @@
 				TargetAttributes = {
 					85AD40882EAF77D300778F66 = {
 						CreatedOnToolsVersion = 26.0.1;
+						LastSwiftMigration = 2610;
 					};
 				};
 			};
@@ -210,6 +224,7 @@
 					"$(PROJECT_DIR)/External/GLAD/include/**",
 					"\"$(PROJECT_DIR)/Header Files/\"/**",
 					"/opt/homebrew/include/glm/**",
+					/opt/homebrew/Cellar/assimp/6.0.2/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"/Users/priyanshukaushik/Projects/MyEngine/MyEngine/External/libs/lib-arm64/**",
@@ -224,7 +239,8 @@
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = (
 					"\"$(PROJECT_DIR)/Header Files\"",
-					"/opt/homebrew/include/glm/**",
+					/opt/homebrew/include/glm,
+					/opt/homebrew/Cellar/assimp/6.0.2/include,
 				);
 			};
 			name = Debug;
@@ -280,6 +296,7 @@
 					"$(PROJECT_DIR)/External/GLAD/include/**",
 					"\"$(PROJECT_DIR)/Header Files/\"/**",
 					"/opt/homebrew/include/glm/**",
+					/opt/homebrew/Cellar/assimp/6.0.2/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"/Users/priyanshukaushik/Projects/MyEngine/MyEngine/External/libs/lib-arm64/**",
@@ -293,7 +310,8 @@
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = (
 					"\"$(PROJECT_DIR)/Header Files\"",
-					"/opt/homebrew/include/glm/**",
+					/opt/homebrew/include/glm,
+					/opt/homebrew/Cellar/assimp/6.0.2/include,
 				);
 			};
 			name = Release;
@@ -301,6 +319,7 @@
 		85AD40912EAF77D300778F66 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
@@ -316,12 +335,16 @@
 					"$(PROJECT_DIR)/MyEngine/External/GLFW",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "MyEngine/Header Files/ECS/MyEngine-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
 		85AD40922EAF77D300778F66 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
@@ -337,6 +360,8 @@
 					"$(PROJECT_DIR)/MyEngine/External/GLFW",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "MyEngine/Header Files/ECS/MyEngine-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};

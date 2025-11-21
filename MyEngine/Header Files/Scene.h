@@ -8,25 +8,27 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include "Renderable.h"
+#include "ECS/Coordinator.h"
+#include "RenderSystem.h"
 
 class Shader;
 class Camera;
-
 class Scene{
 public:
-    Scene();
-    void AddRenderable(std::unique_ptr<Renderable> aRender);
-    void RemoveRenderable(Renderable* aRender);
-    std::vector<std::unique_ptr<Renderable>>& GetRenders(){
-        return renders;
-    }
+    Scene(Coordinator& coordinator, std::shared_ptr<RenderSystem> rs)
+            : m_Coordinator(coordinator), renderSystem(rs) {}
+    
+    Entity AddEntity(char* aName, uint32_t meshID, std::shared_ptr<Texture> texture = nullptr);
+    void RemoveEntity(Entity e);
+
     void Render(Shader& aShader);
-    void RenameRenderable(Renderable* r, const char* newName);
+    void RenameEntity(Entity e, const char* newName);
 
 private:
-    int NameExistCount(const char* aName);
+    int NameExistCount(Entity e, const char* aName);
+
+    Coordinator& m_Coordinator;
 
     Camera* m_Camera;
-    std::vector<std::unique_ptr<Renderable>> renders;
+    std::shared_ptr<RenderSystem> renderSystem;
 };
