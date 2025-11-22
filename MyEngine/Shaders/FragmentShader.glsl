@@ -8,12 +8,15 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec4 vertexColor;
+in vec3 Normal;
 in vec2 TexCoord;
 
 uniform sampler2D texture1;
 
 void main()
 {
-    FragColor = texture(texture1, TexCoord) * vertexColor;
+    vec3 n = normalize(Normal);
+    vec3 normalColor = n * 0.5 + 0.5;
+
+    FragColor = texture(texture1, TexCoord) * vec4(normalColor, 1.0);
 } 

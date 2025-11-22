@@ -116,7 +116,8 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
             }
             else if (polygonIndices.size() > 3)
             {
-                //Triangulate
+                TriangulateFace(polygonIndices, meshData.faces);
+                
             }
         }
     }
@@ -139,7 +140,16 @@ Mesh& MeshManager::GetMesh(uint32_t meshID)
     return s_Meshes[meshID];
 }
 
-void MeshManager::UploadToGPU(Mesh& mesh)
-{
-    
+void MeshManager::TriangulateFace(const std::vector<int> &polygonIndices, std::vector<Face> &outFaces){
+    if (polygonIndices.size() < 3)
+        return; // Not a valid face
+
+    for (size_t i = 1; i + 1 < polygonIndices.size(); ++i)
+    {
+        Face face;
+        face.vertexIndices.push_back(polygonIndices[0]);
+        face.vertexIndices.push_back(polygonIndices[i]);
+        face.vertexIndices.push_back(polygonIndices[i + 1]);
+        outFaces.push_back(face);
+    }
 }

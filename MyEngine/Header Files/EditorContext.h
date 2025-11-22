@@ -26,12 +26,13 @@ private:
     void DrawInspector();
     void RenameRender();
     void DisplayFPS();
+    void SetSelectedEntity(Entity e);
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;
     Entity m_SelectedEntity;
     Coordinator* m_Coordinator;
-    char m_SelectedRenderName[128] = "Name";
+    char m_SelectedEntityName[128] = "Name";
 
     bool bCameraCapturing = false;
 

@@ -178,16 +178,17 @@ void EditorContext::ShowHierarchy(){
         bool isSelected = (m_SelectedEntity == e);
         if (ImGui::Selectable(label.c_str(), isSelected))
         {
-            m_SelectedEntity = e;
-            strcpy(m_SelectedRenderName, m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity)->Name.c_str());
+            SetSelectedEntity(e);
+            strcpy(m_SelectedEntityName, m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity)->Name.c_str());
             
         }
-        if (ImGui::BeginPopupContextItem("object_context_menu")) {
+        if (ImGui::BeginPopupContextItem(("object_context_menu##" + std::to_string(e)).c_str())) {
             if (ImGui::MenuItem("Delete"))
             {
                 if(m_EngineContext){
                     m_EngineContext->DeleteEntity(e);
-                    m_SelectedEntity = UINT32_MAX;
+                    SetSelectedEntity(UINT32_MAX);
+                    
                 }
             }
             ImGui::EndPopup();
@@ -195,7 +196,8 @@ void EditorContext::ShowHierarchy(){
 
     }
     if (ImGui::Button("Add Cube")) {
-        m_EngineContext->CreateCube("Cube");
+        SetSelectedEntity(m_EngineContext->CreateCube("Cube"));
+        
     }
     ImGui::End();
 }
@@ -234,22 +236,29 @@ void EditorContext::RenameRender(){
     bool enterPressed =
         ImGui::InputText(
             "###Name",
-            m_SelectedRenderName,
-            IM_ARRAYSIZE(m_SelectedRenderName),
+            m_SelectedEntityName,
+            IM_ARRAYSIZE(m_SelectedEntityName),
             ImGuiInputTextFlags_EnterReturnsTrue
         );
     if (enterPressed || ImGui::IsItemDeactivatedAfterEdit())
     {
-        std::string trimmed = m_SelectedRenderName;
+        std::string trimmed = m_SelectedEntityName;
         trimmed.erase(0, trimmed.find_first_not_of(" \t\n"));
         trimmed.erase(trimmed.find_last_not_of(" \t\n") + 1);
         
-        strcpy(m_SelectedRenderName, trimmed.c_str());
+        strcpy(m_SelectedEntityName, trimmed.c_str());
         NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
         if(m_Coordinator->DoesEntityExist(m_SelectedEntity) && !trimmed.empty() &&
            trimmed !=nameComponent->Name.c_str()){
             if(m_EngineContext) m_EngineContext->GetScene()->RenameEntity(m_SelectedEntity, trimmed.c_str());
         }
-        else strcpy(m_SelectedRenderName, nameComponent->Name.c_str());
+        else strcpy(m_SelectedEntityName, nameComponent->Name.c_str());
     }
+}
+
+void EditorContext::SetSelectedEntity(Entity e){
+    m_SelectedEntity = e;
+    if(!m_Coordinator->DoesEntityExist(e)) return;
+    NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
+    strcpy(m_SelectedEntityName, nameComponent->Name.c_str());
 }

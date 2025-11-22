@@ -163,11 +163,11 @@ void EngineContext::Cleanup(){
     delete m_Coordinator;
 }
 
-void EngineContext::CreateCube(const char *Name){
-    if(!m_Scene) return;
-    std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/monkey.jpeg");
-    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/quadPlane.obj");
-    m_Scene->AddEntity("Entity", id, MyTexture);
+Entity EngineContext::CreateCube(const char *Name){
+    if(!m_Scene) return UINT32_MAX;
+    std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/brick.jpg");
+    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj");
+    return m_Scene->AddEntity("Entity", id, MyTexture);
 
 }
 

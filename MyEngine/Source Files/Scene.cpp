@@ -39,7 +39,6 @@ void Scene::RemoveEntity(Entity e)
 
 void Scene::RenameEntity(Entity e, const char* newName)
 {
-    std::cout<<"What"<<std::endl;
 
     if(NameComponent* nameComponent = m_Coordinator.GetComponent<NameComponent>(e))
     {

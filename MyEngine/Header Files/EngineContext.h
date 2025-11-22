@@ -40,7 +40,7 @@ public:
         }
     }
 public:
-    void CreateCube(const char* Name);
+    Entity CreateCube(const char* Name);
     void DeleteEntity(Entity aEntity);
 private:
     void InitWindow(int width, int height, const char* title);

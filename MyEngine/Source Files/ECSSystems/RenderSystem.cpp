@@ -47,12 +47,13 @@ void RenderSystem::UploadMeshIfNeeded(Entity e, MeshComponent* mc)
 
     for (const auto& face : mesh.faces)
     {
-        for (int idx : face.vertexIndices)
-            gpuIndices.push_back(idx);
+        for (int index : face.vertexIndices)
+            gpuIndices.push_back(index);
     }
 
     mc->indexCount = static_cast<int>(gpuIndices.size());
 
+    std::cout<<"IndexCount: "<<mc->indexCount;
     glGenVertexArrays(1, &mc->VAO);
     glGenBuffers(1, &mc->VBO);
     glGenBuffers(1, &mc->EBO);
@@ -74,6 +75,7 @@ void RenderSystem::UploadMeshIfNeeded(Entity e, MeshComponent* mc)
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     mc->uploaded = true;
@@ -93,7 +95,6 @@ glm::mat4 RenderSystem::BuildModelMatrix(TransformComponent* t)
 void RenderSystem::Render(Shader& shader)
 {
     shader.Use();
-
     for (Entity e : mEntities)
     {
         TransformComponent* transform = m_Coordinator->GetComponent<TransformComponent>(e);
