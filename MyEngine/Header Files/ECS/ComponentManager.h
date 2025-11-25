@@ -76,7 +76,6 @@ private:
     std::shared_ptr<ComponentArray<T>> GetComponentArray()
     {
         const char* typeName = typeid(T).name();
-
         return std::static_pointer_cast<ComponentArray<T>>(mComponentArrays[typeName]);
     }
 };

@@ -52,8 +52,9 @@ void RenderSystem::UploadMeshIfNeeded(Entity e, MeshComponent* mc)
     }
 
     mc->indexCount = static_cast<int>(gpuIndices.size());
+    int verticesSize = static_cast<int>(gpuVertices.size());
 
-    std::cout<<"IndexCount: "<<mc->indexCount;
+    std::cout<<"Indices + vertices : "<<mc->indexCount + verticesSize <<std::endl;
     glGenVertexArrays(1, &mc->VAO);
     glGenBuffers(1, &mc->VBO);
     glGenBuffers(1, &mc->EBO);

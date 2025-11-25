@@ -12,8 +12,10 @@
 
 Entity Scene::AddEntity(char* aName, uint32_t meshID, std::shared_ptr<Texture> texture)
 {
+    
     Entity e = m_Coordinator.CreateEntity();
 
+    // for now pre add, replace with giving ability to user to add comps
     // Add transform component
     TransformComponent transform{};
     transform.position = {0.0f, 0.0f, 0.0f};
@@ -70,12 +72,9 @@ void Scene::Render(Shader& shader)
 int Scene::NameExistCount(Entity e, const char* aName){
     int count = 0;
     const std::vector<Entity>& aliveEntities = m_Coordinator.GetAliveEntities();
-    std::cout<<"NameExistCount"<< aliveEntities.size() <<std::endl;
     for(auto entity : aliveEntities){
-        std::cout<<"EntityExist"<<std::endl;
         if(entity == e) continue;
         if(NameComponent* nameComponent = m_Coordinator.GetComponent<NameComponent>(entity)){
-            std::cout<<"NameCompExist"<<std::endl;
             if(nameComponent->Name == aName) count++;
         }
     }

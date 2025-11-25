@@ -40,7 +40,7 @@ public:
         }
     }
 public:
-    Entity CreateCube(const char* Name);
+    Entity CreateEntity(char* Name);
     void DeleteEntity(Entity aEntity);
 private:
     void InitWindow(int width, int height, const char* title);
@@ -55,6 +55,7 @@ private:
     float m_ViewportWidth, m_ViewportHeight;
     unsigned int m_ViewportFBO, m_ViewportTexture, m_ViewportRBO;
     bool bControllingCamera = false;
-    float m_DeltaTime = 0.0f;    // Time between current frame and last frame
-    float m_LastFrameTime = 0.0f; // Time of last frame
+    
+    float m_DeltaTime = 0.0f;
+    float m_LastFrameTime = 0.0f;
 };

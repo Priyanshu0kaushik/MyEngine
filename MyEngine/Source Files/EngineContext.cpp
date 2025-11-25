@@ -10,7 +10,6 @@
 #include "Camera.h"
 #include "EditorContext.h"
 #include "Texture.h"
-#include "Coordinator.h"
 #include "RenderSystem.h"
 #include "MeshManager.h"
 
@@ -32,21 +31,22 @@ EngineContext::EngineContext(int width, int height, const char* title){
     m_EditorContext = new EditorContext();
     m_EditorContext->Init(m_Window, this);
     
-
+    // Components
     m_Coordinator->RegisterComponent<TransformComponent>();
     m_Coordinator->RegisterComponent<MeshComponent>();
     
+    // Systems
     auto renderSystem = m_Coordinator->RegisterSystem<RenderSystem>();
     renderSystem->SetCoordinator(m_Coordinator);
-    m_Scene = new Scene(*m_Coordinator, renderSystem);
-    m_Camera = new Camera();
-
-
     Signature signature;
     signature.set(m_Coordinator->GetComponentType<TransformComponent>());
     signature.set(m_Coordinator->GetComponentType<MeshComponent>());
     m_Coordinator->SetSystemSignature<RenderSystem>(signature);
     
+    
+    m_Scene = new Scene(*m_Coordinator, renderSystem);
+    m_Camera = new Camera();
+
     MeshManager::Allocate();
 
 
@@ -163,11 +163,14 @@ void EngineContext::Cleanup(){
     delete m_Coordinator;
 }
 
-Entity EngineContext::CreateCube(const char *Name){
+Entity EngineContext::CreateEntity(char *Name){
     if(!m_Scene) return UINT32_MAX;
-    std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/brick.jpg");
-    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj");
-    return m_Scene->AddEntity("Entity", id, MyTexture);
+    MeshManager::PrintMemory();
+    std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png");
+    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/well.obj");
+    MeshManager::PrintMemory();
+
+    return m_Scene->AddEntity(Name, id, MyTexture);
 
 }
 

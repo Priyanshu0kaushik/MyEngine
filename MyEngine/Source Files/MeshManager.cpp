@@ -9,6 +9,10 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <sys/sysctl.h>
+#include <mach/mach.h>
+
+
 
 MeshManager* MeshManager::instance = nullptr;
 
@@ -37,8 +41,8 @@ MeshManager& MeshManager::Get()
 
 uint32_t MeshManager::LoadMesh(const std::string& path)
 {
-    if (s_PathToID.find(path) != s_PathToID.end())
-        return s_PathToID[path];
+    if (m_PathToID.find(path) != m_PathToID.end())
+        return m_PathToID[path];
 
     Mesh meshData;
 
@@ -97,7 +101,6 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
                 int tIndex = tStr.empty() ? -1 : std::stoi(tStr) - 1;
                 int nIndex = nStr.empty() ? -1 : std::stoi(nStr) - 1;
 
-                // construct vertex
                 Vertex vert;
                 vert.position = tempPositions[vIndex];
                 vert.uv = (tIndex >= 0 ? tempUVs[tIndex] : glm::vec2(0.0f));
@@ -125,24 +128,24 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
     file.close();
 
     uint32_t id = CreateMesh(meshData);
-    s_PathToID[path] = id;
+    m_PathToID[path] = id;
     return id;
 }
 
 uint32_t MeshManager::CreateMesh(const Mesh& meshData)
 {
-    s_Meshes.push_back(meshData);
-    return (uint32_t)s_Meshes.size() - 1;
+    m_Meshes.push_back(meshData);
+    return (uint32_t)m_Meshes.size() - 1;
 }
 
 Mesh& MeshManager::GetMesh(uint32_t meshID)
 {
-    return s_Meshes[meshID];
+    return m_Meshes[meshID];
 }
 
 void MeshManager::TriangulateFace(const std::vector<int> &polygonIndices, std::vector<Face> &outFaces){
     if (polygonIndices.size() < 3)
-        return; // Not a valid face
+        return;
 
     for (size_t i = 1; i + 1 < polygonIndices.size(); ++i)
     {
@@ -152,4 +155,53 @@ void MeshManager::TriangulateFace(const std::vector<int> &polygonIndices, std::v
         face.vertexIndices.push_back(polygonIndices[i + 1]);
         outFaces.push_back(face);
     }
+}
+
+void MeshManager::PrintMemory(){
+    int mib [] = { CTL_HW, HW_MEMSIZE };
+    uint64_t totalMem = 0;
+    size_t len = sizeof(totalMem);
+    
+    if(-1 == sysctl(mib, 2, &totalMem, &len, NULL, 0))
+    {
+        std::cerr << "Failed to get total memory.\n";
+        return;
+    }
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    vm_statistics64_data_t vmstat;
+
+    if (host_statistics64(mach_host_self(),
+                          HOST_VM_INFO64,
+                          (host_info64_t)&vmstat,
+                          &count) != KERN_SUCCESS)
+    {
+        std::cerr << "Failed to get VM statistics.\n";
+        return;
+    }
+    
+    uint64_t pageSize = 0;
+    len = sizeof(pageSize);
+    sysctlbyname("hw.pagesize", &pageSize, &len, NULL, 0);
+
+    uint64_t freeMem  = (vmstat.free_count + vmstat.inactive_count) * pageSize;
+    uint64_t usedMem  = totalMem - freeMem;
+
+    uint64_t virtualMemUsed = vmstat.internal_page_count * pageSize;
+    uint64_t virtualMemFree = vmstat.free_count * pageSize;
+
+    std::cout << "There is "
+              << freeMem / (1024 * 1024)
+              << " MB of physical memory available.\n";
+
+    std::cout << "There is "
+              << virtualMemFree / (1024 * 1024)
+              << " MB of virtual memory free.\n";
+
+    std::cout << "Total physical memory: "
+              << totalMem / (1024 * 1024)
+              << " MB\n";
+
+    std::cout << "Used physical memory: "
+              << usedMem / (1024 * 1024)
+              << " MB\n";
 }

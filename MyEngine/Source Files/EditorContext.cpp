@@ -195,8 +195,8 @@ void EditorContext::ShowHierarchy(){
         }
 
     }
-    if (ImGui::Button("Add Cube")) {
-        SetSelectedEntity(m_EngineContext->CreateCube("Cube"));
+    if (ImGui::Button("Add GameObject")) {
+        SetSelectedEntity(m_EngineContext->CreateEntity("GameObject"));
         
     }
     ImGui::End();
@@ -227,6 +227,11 @@ void EditorContext::DrawInspector()
         ImGui::Text("Scale");
         if (ImGui::DragFloat3("###Scale", &scale.x, 0.1f, 0.01f, 10.0f))
             tc->scale = scale;
+        
+        if(ImGui::Button("Add Component")){
+            
+        }
+        
     }
 
     ImGui::End();

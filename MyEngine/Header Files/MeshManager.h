@@ -18,7 +18,7 @@ public:
     MeshManager();
     static void Allocate();
     static MeshManager& Get();
-    
+    static void PrintMemory();
     static void DeAllocate();
     
     uint32_t LoadMesh(const std::string& path);
@@ -32,6 +32,6 @@ private:
 private:
     static MeshManager* instance;
     
-    std::vector<Mesh> s_Meshes;
-    std::unordered_map<std::string, uint32_t> s_PathToID;
+    std::vector<Mesh> m_Meshes;
+    std::unordered_map<std::string, uint32_t> m_PathToID;
 };
