@@ -10,6 +10,7 @@
 #include <memory>
 #include "ComponentArray.h"
 #include <map>
+#include <vector>
 
 class ComponentManager
 {
@@ -17,19 +18,18 @@ public:
     template<typename T>
     void RegisterComponent()
     {
-        const char* typeName = typeid(T).name();
-
+        const char* typeName = T::TypeName;
+        std::cout<<typeName<<std::endl;
         mComponentTypes.insert({typeName, mNextComponentType});
-
         mComponentArrays.insert({typeName, std::make_shared<ComponentArray<T>>()});
-
+        
         ++mNextComponentType;
     }
 
     template<typename T>
     ComponentType GetComponentType()
     {
-        const char* typeName = typeid(T).name();
+        const char* typeName = T::TypeName;
 
 
         return mComponentTypes[typeName];
@@ -40,7 +40,18 @@ public:
     {
         GetComponentArray<T>()->InsertData(entity, component);
     }
-
+    
+    std::vector<std::string> GetComponentNames()
+    {
+        std::vector<std::string> names;
+        for (auto const& pair : mComponentArrays)
+        {
+            std::string name = pair.first;
+            names.push_back(name);
+        }
+        return names;
+    }
+    
     template<typename T>
     void RemoveComponent(Entity entity)
     {
@@ -75,7 +86,7 @@ private:
     template<typename T>
     std::shared_ptr<ComponentArray<T>> GetComponentArray()
     {
-        const char* typeName = typeid(T).name();
+        const char* typeName = T::TypeName;
         return std::static_pointer_cast<ComponentArray<T>>(mComponentArrays[typeName]);
     }
 };

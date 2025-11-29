@@ -14,6 +14,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <iostream>
+#include <string>
 
 
 EditorContext::EditorContext(){
@@ -103,6 +104,7 @@ void EditorContext::Render(){
     ShowViewport();
     ShowHierarchy();
     DrawInspector();
+    
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     if(io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -188,16 +190,15 @@ void EditorContext::ShowHierarchy(){
                 if(m_EngineContext){
                     m_EngineContext->DeleteEntity(e);
                     SetSelectedEntity(UINT32_MAX);
-                    
                 }
             }
             ImGui::EndPopup();
         }
 
     }
-    if (ImGui::Button("Add GameObject")) {
+    if (ImGui::Button("Add GameObject"))
+    {
         SetSelectedEntity(m_EngineContext->CreateEntity("GameObject"));
-        
     }
     ImGui::End();
 }
@@ -209,33 +210,80 @@ void EditorContext::DrawInspector()
     
     if (m_Coordinator->DoesEntityExist(m_SelectedEntity))
     {
-        ImGui::Text("Name");
-        RenameRender();
-        TransformComponent* tc = m_Coordinator->GetComponent<TransformComponent>(m_SelectedEntity);
-        if(!tc) return;
-        glm::vec3 pos = tc->position;
-        ImGui::Text("Position");
-        if (ImGui::DragFloat3("###Position", &pos.x, 0.1f))
-            tc->position=pos;
-
-        glm::vec3 rot = tc->rotation;
-        ImGui::Text("Rotation");
-        if (ImGui::DragFloat3("###Rotation", &rot.x, 0.1f))
-            tc->rotation = rot;
-
-        glm::vec3 scale = tc->scale;
-        ImGui::Text("Scale");
-        if (ImGui::DragFloat3("###Scale", &scale.x, 0.1f, 0.01f, 10.0f))
-            tc->scale = scale;
+        ShowNameComponent();
+        ShowTransformComponent();
         
-        if(ImGui::Button("Add Component")){
-            
+        if(ImGui::Button("Add Component"))
+        {
+            ImGui::OpenPopup("AddComponentPopup");
         }
         
     }
+    ShowAddComponentsList();
 
     ImGui::End();
 }
+
+void EditorContext::ShowAddComponentsList()
+{
+    if(ImGui::BeginPopup("AddComponentPopup"))
+    {
+        ImGui::Text("Select Component");
+        ImGui::Separator();
+        static char search[64] = "";
+        ImGui::InputText("Search", search, IM_ARRAYSIZE(search));
+
+        for (std::string name : m_Coordinator->GetComponentNames())
+        {
+            if (strstr(name.c_str(), search)!=nullptr)
+            {
+                if (ImGui::Selectable(name.c_str()))
+                {
+                    m_Coordinator->AddComponentByName(m_SelectedEntity, name.c_str());
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+        }
+        ImGui::EndPopup();
+    }
+}
+
+void EditorContext::ShowNameComponent()
+{
+    NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
+    if(!nameComponent) return;
+    ImGui::Text("Name");
+    RenameRender();
+    ImGui::Separator();
+
+}
+void EditorContext::ShowTransformComponent()
+{
+    TransformComponent* tc = m_Coordinator->GetComponent<TransformComponent>(m_SelectedEntity);
+    if(!tc) return;
+    glm::vec3 pos = tc->position;
+    ImGui::Text("Position");
+    if (ImGui::DragFloat3("###Position", &pos.x, 0.1f))
+        tc->position=pos;
+
+    glm::vec3 rot = tc->rotation;
+    ImGui::Text("Rotation");
+    if (ImGui::DragFloat3("###Rotation", &rot.x, 0.1f))
+        tc->rotation = rot;
+
+    glm::vec3 scale = tc->scale;
+    ImGui::Text("Scale");
+    if (ImGui::DragFloat3("###Scale", &scale.x, 0.1f, 0.01f, 10.0f))
+        tc->scale = scale;
+
+    ImGui::Separator();
+
+}
+void EditorContext::ShowMeshComponent()
+{
+    
+}
+
 
 void EditorContext::RenameRender(){
     bool enterPressed =

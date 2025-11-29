@@ -47,11 +47,20 @@ public:
     void RegisterComponent()
     {
         mComponentManager->RegisterComponent<T>();
+        mComponentCreators[T::TypeName] = [this](Entity e)
+        {
+            T component{};
+            this->AddComponent<T>(e, component);
+        };
     }
 
     template<typename T>
-    void AddComponent(Entity entity, T component)
+    bool AddComponent(Entity entity, T component)
     {
+        if(T::UniquePerEntity){
+            if (GetComponent<T>(entity)!=nullptr) return false;
+        }
+        
         mComponentManager->AddComponent<T>(entity, component);
 
         auto signature = mEntityManager->GetSignature(entity);
@@ -59,6 +68,16 @@ public:
         mEntityManager->SetSignature(entity, signature);
 
         mSystemManager->EntitySignatureChanged(entity, signature);
+        return true;
+    }
+    
+    void AddComponentByName(Entity e,const char* ComponentName)
+    {
+        auto it = mComponentCreators.find(ComponentName);
+        if (it != mComponentCreators.end())
+        {
+            it->second(e);
+        }
     }
 
     template<typename T>
@@ -112,8 +131,13 @@ public:
         return mEntityManager->DoesEntityExist(e);
     }
     
-
+    std::vector<std::string> GetComponentNames()
+    {
+        return mComponentManager->GetComponentNames();
+    }
+    
 private:
+    std::unordered_map<std::string, std::function<void(Entity)>> mComponentCreators;
     std::unique_ptr<ComponentManager> mComponentManager;
     std::unique_ptr<EntityManager> mEntityManager;
     std::unique_ptr<ECSSystemManager> mSystemManager;

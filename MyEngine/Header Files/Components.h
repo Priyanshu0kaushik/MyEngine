@@ -13,14 +13,21 @@
 
 struct TransformComponent
 {
-    glm::vec3 position;
-    glm::vec3 rotation;
+    glm::vec3 position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 rotation = {0.0f, 0.0f, 0.0f};
     glm::vec3 scale = glm::vec3(1.0f);
+    
+    static constexpr const char* TypeName = "Transform Component";
+    static constexpr const bool UniquePerEntity = true;
+
 };
 
 struct NameComponent
 {
-    std::string Name;
+    std::string Name = "GameObject";
+    
+    static constexpr const char* TypeName = "Name Component";
+    static constexpr const bool UniquePerEntity = true;
 };
 
 struct MeshComponent
@@ -32,4 +39,8 @@ struct MeshComponent
     int indexCount = 0;
     bool uploaded = false;
     std::shared_ptr<Texture> MyTexture = nullptr;
+    
+    static constexpr const char* TypeName = "Mesh Component";
+    static constexpr const bool UniquePerEntity = true;
 };
+

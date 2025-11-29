@@ -165,13 +165,10 @@ void EngineContext::Cleanup(){
 
 Entity EngineContext::CreateEntity(char *Name){
     if(!m_Scene) return UINT32_MAX;
-    MeshManager::PrintMemory();
     std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png");
-    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/well.obj");
-    MeshManager::PrintMemory();
+    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj");
 
     return m_Scene->AddEntity(Name, id, MyTexture);
-
 }
 
 void EngineContext::DeleteEntity(Entity aEntity){

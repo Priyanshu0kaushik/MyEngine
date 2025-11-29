@@ -27,6 +27,12 @@ private:
     void RenameRender();
     void DisplayFPS();
     void SetSelectedEntity(Entity e);
+    
+    void ShowAddComponentsList();
+    void ShowNameComponent();
+    void ShowTransformComponent();
+    void ShowMeshComponent();
+    
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;
