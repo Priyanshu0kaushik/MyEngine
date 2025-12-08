@@ -38,9 +38,27 @@ struct MeshComponent
     unsigned int EBO = 0;
     int indexCount = 0;
     bool uploaded = false;
-    std::shared_ptr<Texture> MyTexture = nullptr;
+    uint32_t textureID;
     
     static constexpr const char* TypeName = "Mesh Component";
+    static constexpr const bool UniquePerEntity = true;
+};
+
+struct CameraComponent
+{
+    float Fov = 60.f;
+    float Near = 0.1f;
+    float Far = 100.f;
+    
+    glm::vec3 CameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 Front = glm::vec3(0.0f, 0.0f, -1.0f);
+    float AspectRatio = 1280.f/720.f;
+    float Yaw = -90.0f;
+    float Pitch = 0.0f;
+    
+    bool IsPrimary = false;
+    static constexpr const char* TypeName = "Camera Component";
     static constexpr const bool UniquePerEntity = true;
 };
 

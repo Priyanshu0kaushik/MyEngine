@@ -25,10 +25,16 @@ public:
     Mesh& GetMesh(uint32_t meshID);
     void TriangulateFace(const std::vector<int>& polygonIndices, std::vector<Face>& outFaces);
 
+    std::unordered_map<std::string, uint32_t>& GetAllMeshes(){return m_PathToID;}
+
 private:
     uint32_t CreateMesh(const Mesh& meshData);
     void UploadToGPU(Mesh& mesh);
+    
+    bool SaveMeshBinary(const std::string& path, const Mesh& mesh);
+    bool LoadMeshBinary(const std::string& path, Mesh& outMesh);
 
+    
 private:
     static MeshManager* instance;
     

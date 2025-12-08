@@ -11,6 +11,8 @@
 #include "imgui.h"
 #include "glad.h"
 #include "glfw3.h"
+#include "MeshManager.h"
+#include "TextureManager.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <iostream>
@@ -205,6 +207,7 @@ void EditorContext::ShowHierarchy(){
 
 void EditorContext::DrawInspector()
 {
+    if(m_SelectedEntity == UINT32_MAX) return;
     ImGui::Begin("Inspector");
 
     
@@ -212,6 +215,8 @@ void EditorContext::DrawInspector()
     {
         ShowNameComponent();
         ShowTransformComponent();
+        ShowCameraComponent();
+        ShowMeshComponent();
         
         if(ImGui::Button("Add Component"))
         {
@@ -261,6 +266,7 @@ void EditorContext::ShowTransformComponent()
 {
     TransformComponent* tc = m_Coordinator->GetComponent<TransformComponent>(m_SelectedEntity);
     if(!tc) return;
+    ImGui::SeparatorText("Transform Component");
     glm::vec3 pos = tc->position;
     ImGui::Text("Position");
     if (ImGui::DragFloat3("###Position", &pos.x, 0.1f))
@@ -281,9 +287,109 @@ void EditorContext::ShowTransformComponent()
 }
 void EditorContext::ShowMeshComponent()
 {
+    if(!m_Coordinator->GetComponent<MeshComponent>(m_SelectedEntity)) return;
     
+    MeshComponent* mesh = m_Coordinator->GetComponent<MeshComponent>(m_SelectedEntity);
+    ImGui::SeparatorText("Mesh Component");
+
+    auto& allMeshes = MeshManager::Get().GetAllMeshes();
+
+    std::string currentMeshName = "Unknown";
+    
+    for (auto& [path, id] : allMeshes)
+    {
+        if (id == mesh->meshID)
+        {
+            currentMeshName = path;
+            break;
+        }
+    }
+
+    ImGui::Text("Current Mesh:");
+    ImGui::TextWrapped("%s", currentMeshName.c_str());
+
+    ImGui::Spacing();
+    ImGui::TextWrapped("Change Mesh");
+    if (ImGui::BeginCombo("###Change Mesh", currentMeshName.c_str()))
+    {
+        for (auto& [path, id] : allMeshes)
+        {
+            bool isSelected = (id == mesh->meshID);
+            if (ImGui::Selectable(path.c_str(), isSelected))
+            {
+                mesh->meshID = id;
+                mesh->uploaded = false;
+            }
+
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+    
+    
+    ImGui::Separator();
+    
+    auto& Textures = TextureManager::Get().GetAllTextures();
+
+    std::string currentTextureName = "Unknown";
+    
+    for (auto& [path, id] : Textures)
+    {
+        if (id == mesh->textureID)
+        {
+            currentTextureName = path;
+            break;
+        }
+    }
+
+    ImGui::Text("Current Texture:");
+    ImGui::TextWrapped("%s", currentTextureName.c_str());
+
+    ImGui::Spacing();
+    ImGui::TextWrapped("Change Texture");
+    if (ImGui::BeginCombo("###Change Texture", currentTextureName.c_str()))
+    {
+        for (auto& [path, id] : Textures)
+        {
+            bool isSelected = (id == mesh->textureID);
+            if (ImGui::Selectable(path.c_str(), isSelected))
+            {
+                mesh->textureID = id;
+            }
+
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::Separator();
+
 }
 
+void EditorContext::ShowCameraComponent()
+{
+    CameraComponent* cam = m_Coordinator->GetComponent<CameraComponent>(m_SelectedEntity);
+    if(!cam) return;
+    ImGui::SeparatorText("Camera Component");
+    float fov = cam->Fov;
+    ImGui::Text("FOV");
+    if (ImGui::DragFloat("###FOV", &fov, 0.1f))
+        cam->Fov=fov;
+
+    float near = cam->Near;
+    ImGui::Text("Near");
+    if (ImGui::DragFloat("###Near", &near, 0.1f))
+        cam->Near=near;
+
+    float far = cam->Far;
+    ImGui::Text("Far");
+    if (ImGui::DragFloat("###Far", &far, 0.1f))
+        cam->Far=far;
+
+    ImGui::Separator();
+    
+}
 
 void EditorContext::RenameRender(){
     bool enterPressed =

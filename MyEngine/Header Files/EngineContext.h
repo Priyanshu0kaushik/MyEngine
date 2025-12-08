@@ -8,7 +8,8 @@
 
 #include "glad.h"
 #include "glfw3.h"
-#include "Camera.h"
+#include "RenderSystem.h"
+#include "CameraSystem.h"
 #include "ECS/Coordinator.h"
 
 class Scene;
@@ -21,7 +22,6 @@ public:
     EngineContext(int width, int height, const char* title);
     void SetShader(Shader* aShader){ m_Shader = aShader;}
     Scene* GetScene(){return m_Scene;}
-    Camera* GetCamera(){return m_Camera;}
     GLFWwindow* GetWindow(){return m_Window;}
     Shader* GetShader(){return m_Shader;}
     Coordinator* GetCoordinator(){return m_Coordinator;}
@@ -36,7 +36,7 @@ public:
     static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
         EngineContext* engineContext = reinterpret_cast<EngineContext*>(glfwGetWindowUserPointer(window));
         if (engineContext && engineContext->bControllingCamera){
-            engineContext->GetCamera()->ProcessMouseScroll(static_cast<float>(yoffset));
+            engineContext->cameraSystem->ProcessMouseScroll(static_cast<float>(yoffset));
         }
     }
 public:
@@ -49,9 +49,12 @@ private:
     Coordinator* m_Coordinator = nullptr;
     GLFWwindow* m_Window = nullptr;
     Scene* m_Scene = nullptr;
-    Camera* m_Camera = nullptr;
     Shader* m_Shader = nullptr;
     EditorContext* m_EditorContext = nullptr;
+    std::shared_ptr<RenderSystem> renderSystem = nullptr;
+    std::shared_ptr<CameraSystem> cameraSystem = nullptr;
+    
+    
     float m_ViewportWidth, m_ViewportHeight;
     unsigned int m_ViewportFBO, m_ViewportTexture, m_ViewportRBO;
     bool bControllingCamera = false;

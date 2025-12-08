@@ -11,7 +11,7 @@
 #include "ECS.h"
 
 class ECSSystem{
-
 public:
+    virtual void Init(){};
     std::vector<Entity> mEntities;
 };

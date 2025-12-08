@@ -10,15 +10,16 @@
 #include <vector>
 #include "ECS/Coordinator.h"
 #include "RenderSystem.h"
+#include "CameraSystem.h"
 
 class Shader;
 class Camera;
 class Scene{
 public:
-    Scene(Coordinator& coordinator, std::shared_ptr<RenderSystem> rs)
-            : m_Coordinator(coordinator), renderSystem(rs) {}
+    Scene(Coordinator& coordinator, std::shared_ptr<RenderSystem> rs, std::shared_ptr<CameraSystem> cs)
+            : m_Coordinator(coordinator), renderSystem(rs), cameraSystem(cs) {}
     
-    Entity AddEntity(char* aName, uint32_t meshID, std::shared_ptr<Texture> texture = nullptr);
+    Entity AddEntity(char* aName);
     void RemoveEntity(Entity e);
 
     void Render(Shader& aShader);
@@ -31,4 +32,5 @@ private:
 
     Camera* m_Camera;
     std::shared_ptr<RenderSystem> renderSystem;
+    std::shared_ptr<CameraSystem> cameraSystem;
 };

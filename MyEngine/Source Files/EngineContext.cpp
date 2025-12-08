@@ -7,10 +7,9 @@
 
 #include "EngineContext.h"
 #include "Scene.h"
-#include "Camera.h"
 #include "EditorContext.h"
 #include "Texture.h"
-#include "RenderSystem.h"
+#include "TextureManager.h"
 #include "MeshManager.h"
 
 
@@ -34,20 +33,35 @@ EngineContext::EngineContext(int width, int height, const char* title){
     // Components
     m_Coordinator->RegisterComponent<TransformComponent>();
     m_Coordinator->RegisterComponent<MeshComponent>();
+    m_Coordinator->RegisterComponent<CameraComponent>();
     
     // Systems
-    auto renderSystem = m_Coordinator->RegisterSystem<RenderSystem>();
+    renderSystem = m_Coordinator->RegisterSystem<RenderSystem>();
     renderSystem->SetCoordinator(m_Coordinator);
-    Signature signature;
-    signature.set(m_Coordinator->GetComponentType<TransformComponent>());
-    signature.set(m_Coordinator->GetComponentType<MeshComponent>());
-    m_Coordinator->SetSystemSignature<RenderSystem>(signature);
+    Signature RenderSignature;
+    RenderSignature.set(m_Coordinator->GetComponentType<TransformComponent>());
+    RenderSignature.set(m_Coordinator->GetComponentType<MeshComponent>());
+    m_Coordinator->SetSystemSignature<RenderSystem>(RenderSignature);
     
+    cameraSystem = m_Coordinator->RegisterSystem<CameraSystem>();
+    cameraSystem->SetCoordinator(m_Coordinator);
+    Signature CameraSignature;
+    CameraSignature.set(m_Coordinator->GetComponentType<TransformComponent>());
+    CameraSignature.set(m_Coordinator->GetComponentType<CameraComponent>());
+    m_Coordinator->SetSystemSignature<CameraSystem>(CameraSignature);
     
-    m_Scene = new Scene(*m_Coordinator, renderSystem);
-    m_Camera = new Camera();
+    renderSystem->Init();
+    cameraSystem->Init();
+    
+    m_Scene = new Scene(*m_Coordinator, renderSystem, cameraSystem);
 
     MeshManager::Allocate();
+    TextureManager::Allocate();
+    
+    TextureManager::Get().LoadTexture("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png");
+    TextureManager::Get().LoadTexture("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png");
+    MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj");
+    MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj");
 
 
 }
@@ -86,7 +100,6 @@ void EngineContext::InitWindow(int width, int height, const char* title){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    /* Create a windowed mode window and its OpenGL context */
     m_Window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (!m_Window)
     {
@@ -96,7 +109,6 @@ void EngineContext::InitWindow(int width, int height, const char* title){
 
     glfwMakeContextCurrent(m_Window);
 
-    /* IMPORTANT: Load GLAD (after context is created) */
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         throw std::runtime_error("Failed to initialize GLAD");
@@ -117,7 +129,7 @@ void EngineContext::OnStartControlCam(){
 
 void EngineContext::OnReleaseCamControl(){
     bControllingCamera = false;
-    m_Camera->OnReleaseCamControl();
+    cameraSystem->OnReleaseCamControl();
 }
 
 
@@ -135,12 +147,12 @@ void EngineContext::Draw(){
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        if(bControllingCamera) m_Camera->ProcessInput(m_Window, m_DeltaTime);
+        if(bControllingCamera) cameraSystem->ProcessInput(m_Window, m_DeltaTime);
         
-        if(m_Shader && m_Camera){
+        if(m_Shader && cameraSystem){
             m_Shader->Use();
-            m_Shader->SetMatrix4(m_Camera->GetView(), "view");
-            m_Shader->SetMatrix4(m_Camera->GetProjection(), "projection");
+            m_Shader->SetMatrix4(cameraSystem->GetView(), "view");
+            m_Shader->SetMatrix4(cameraSystem->GetCameraProjection(), "projection");
         }
 
         if(m_Scene){
@@ -150,14 +162,12 @@ void EngineContext::Draw(){
         
         // ImGUI
         m_EditorContext->Render();
-
         glfwSwapBuffers(m_Window);
         glfwPollEvents();
     }
 }
 
 void EngineContext::Cleanup(){
-    delete m_Camera;
     delete m_Scene;
     delete m_EditorContext;
     delete m_Coordinator;
@@ -165,10 +175,9 @@ void EngineContext::Cleanup(){
 
 Entity EngineContext::CreateEntity(char *Name){
     if(!m_Scene) return UINT32_MAX;
-    std::shared_ptr<Texture> MyTexture = std::make_unique<Texture>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png");
-    uint32_t id = MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj");
+    
 
-    return m_Scene->AddEntity(Name, id, MyTexture);
+    return m_Scene->AddEntity(Name);
 }
 
 void EngineContext::DeleteEntity(Entity aEntity){
@@ -178,6 +187,7 @@ void EngineContext::DeleteEntity(Entity aEntity){
 void EngineContext::Shutdown(){
     m_EditorContext->EndFrame();
     MeshManager::DeAllocate();
+    TextureManager::DeAllocate();
     Cleanup();
     glfwTerminate();
 }

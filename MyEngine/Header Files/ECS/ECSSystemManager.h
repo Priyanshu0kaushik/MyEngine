@@ -19,7 +19,7 @@ public:
 
         // Create a pointer to the system and return it so it can be used externally
         auto system = std::make_shared<T>();
-        mSystems.insert({typeName, system});
+        mSystems.insert({typeName, std::static_pointer_cast<ECSSystem>(system)});
         return system;
     }
 

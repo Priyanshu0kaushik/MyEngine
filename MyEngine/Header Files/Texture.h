@@ -6,13 +6,10 @@
 //
 #pragma once
 
-class Texture{
-public:
-
-    Texture(const char* aPath);
-    
+struct TextureData{
     int Width;
     int Height;
     
     unsigned int TextureObject;
 };
+

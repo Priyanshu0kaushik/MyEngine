@@ -32,6 +32,7 @@ private:
     void ShowNameComponent();
     void ShowTransformComponent();
     void ShowMeshComponent();
+    void ShowCameraComponent();
     
 private:
     ImGuiIO* io;

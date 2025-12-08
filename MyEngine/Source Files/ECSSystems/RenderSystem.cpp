@@ -8,6 +8,7 @@
 #include "RenderSystem.h"
 #include "Coordinator.h"
 #include "MeshManager.h"
+#include "TextureManager.h"
 #include "glad.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -105,10 +106,11 @@ void RenderSystem::Render(Shader& shader)
 
         glm::mat4 model = BuildModelMatrix(transform);
         shader.SetMatrix4(model, "transform");
-        if (meshComp->MyTexture)
+        if (meshComp->textureID != UINT32_MAX)
        {
+           TextureData& Texture = TextureManager::Get().GetTexture(meshComp->textureID);
            glActiveTexture(GL_TEXTURE0);
-           glBindTexture(GL_TEXTURE_2D, meshComp->MyTexture->TextureObject);
+           glBindTexture(GL_TEXTURE_2D, Texture.TextureObject);
            glUniform1i(glGetUniformLocation(shader.shaderProgram, "texture1"), 0);
        }
         glBindVertexArray(meshComp->VAO);
