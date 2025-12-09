@@ -58,10 +58,10 @@ EngineContext::EngineContext(int width, int height, const char* title){
     MeshManager::Allocate();
     TextureManager::Allocate();
     
+    PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj"));
+    PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj"));
     TextureManager::Get().LoadTexture("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png");
     TextureManager::Get().LoadTexture("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png");
-    MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj");
-    MeshManager::Get().LoadMesh("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj");
 
 
 }
@@ -73,7 +73,6 @@ void EngineContext::InitViewportFramebuffer(int width, int height){
     glGenFramebuffers(1, &m_ViewportFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFBO);
 
-    // Color texture
     glGenTextures(1, &m_ViewportTexture);
     glBindTexture(GL_TEXTURE_2D, m_ViewportTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -81,7 +80,6 @@ void EngineContext::InitViewportFramebuffer(int width, int height){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ViewportTexture, 0);
 
-    // Depth buffer
     glGenRenderbuffers(1, &m_ViewportRBO);
     glBindRenderbuffer(GL_RENDERBUFFER, m_ViewportRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -146,7 +144,8 @@ void EngineContext::Draw(){
         glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFBO);
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+            
+        ProcessMessages();
         if(bControllingCamera) cameraSystem->ProcessInput(m_Window, m_DeltaTime);
         
         if(m_Shader && cameraSystem){
@@ -175,13 +174,43 @@ void EngineContext::Cleanup(){
 
 Entity EngineContext::CreateEntity(char *Name){
     if(!m_Scene) return UINT32_MAX;
-    
-
     return m_Scene->AddEntity(Name);
 }
 
 void EngineContext::DeleteEntity(Entity aEntity){
     if(m_Scene) m_Scene->RemoveEntity(aEntity);
+}
+
+void EngineContext::SendMessage(std::shared_ptr<Message> msg)
+{
+    switch (msg->type)
+    {
+        case MessageType::LoadMesh:
+        {
+            auto loadMsg = std::static_pointer_cast<LoadMeshMessage>(msg);
+            uint32_t id = MeshManager::Get().LoadMesh(loadMsg->path);
+
+            PushMessage(std::make_shared<MeshLoadedMessage>(id, loadMsg->path.c_str()));
+            break;
+        }
+
+        case MessageType::MeshLoaded:
+        {
+            auto loadedMsg = std::static_pointer_cast<MeshLoadedMessage>(msg);
+            std::cout << "Mesh loaded with ID: " << loadedMsg->meshID << std::endl;
+            break;
+        }
+    }
+}
+
+void EngineContext::ProcessMessages(){
+    while (!m_MessageQueue.empty())
+    {
+        auto msg = m_MessageQueue.front();
+        m_MessageQueue.pop();
+
+        SendMessage(msg);
+    }
 }
 
 void EngineContext::Shutdown(){

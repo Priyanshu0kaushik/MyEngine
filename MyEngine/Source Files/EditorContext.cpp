@@ -7,6 +7,7 @@
 
 #include "EditorContext.h"
 #include "EngineContext.h"
+#include "MessageQueue.h"
 #include "Scene.h"
 #include "imgui.h"
 #include "glad.h"
@@ -217,6 +218,7 @@ void EditorContext::DrawInspector()
         ShowTransformComponent();
         ShowCameraComponent();
         ShowMeshComponent();
+        ShowLoadMeshButton();
         
         if(ImGui::Button("Add Component"))
         {
@@ -387,11 +389,13 @@ void EditorContext::ShowCameraComponent()
     if (ImGui::DragFloat("###Far", &far, 0.1f))
         cam->Far=far;
 
+    
     ImGui::Separator();
     
 }
 
-void EditorContext::RenameRender(){
+void EditorContext::RenameRender()
+{
     bool enterPressed =
         ImGui::InputText(
             "###Name",
@@ -413,6 +417,20 @@ void EditorContext::RenameRender(){
         }
         else strcpy(m_SelectedEntityName, nameComponent->Name.c_str());
     }
+}
+
+void EditorContext::ShowLoadMeshButton()
+{
+    ImGui::SeparatorText("Load Mesh");
+    char m_MeshPath[128] = "Path";
+    bool pathEntered = ImGui::InputText(
+        "###MeshPath",
+         m_MeshPath,
+        IM_ARRAYSIZE(m_MeshPath),
+        ImGuiInputTextFlags_EnterReturnsTrue
+    );
+
+    if(pathEntered)m_EngineContext->PushMessage(std::make_shared<LoadMeshMessage>(m_MeshPath));
 }
 
 void EditorContext::SetSelectedEntity(Entity e){

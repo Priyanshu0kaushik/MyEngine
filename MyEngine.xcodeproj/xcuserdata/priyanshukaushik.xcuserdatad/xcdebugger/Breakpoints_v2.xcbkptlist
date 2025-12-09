@@ -30,8 +30,8 @@
             filePath = "MyEngine/Source Files/EditorContext.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "251"
-            endingLineNumber = "251"
+            startingLineNumber = "253"
+            endingLineNumber = "253"
             landmarkName = "EditorContext::ShowAddComponentsList()"
             landmarkType = "7">
          </BreakpointContent>

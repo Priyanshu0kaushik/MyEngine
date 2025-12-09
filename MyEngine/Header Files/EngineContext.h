@@ -11,11 +11,14 @@
 #include "RenderSystem.h"
 #include "CameraSystem.h"
 #include "ECS/Coordinator.h"
+#include "Message.h"
+
+#include <queue>
+#include <memory>
 
 class Scene;
 class Shader;
 class EditorContext;
-class Renderable;
 
 class EngineContext{
 public:
@@ -33,6 +36,9 @@ public:
     void OnStartControlCam();
     void OnReleaseCamControl();
     
+    void PushMessage(std::shared_ptr<Message> msg){
+        m_MessageQueue.push(msg);
+    }
     static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
         EngineContext* engineContext = reinterpret_cast<EngineContext*>(glfwGetWindowUserPointer(window));
         if (engineContext && engineContext->bControllingCamera){
@@ -43,6 +49,8 @@ public:
     Entity CreateEntity(char* Name);
     void DeleteEntity(Entity aEntity);
 private:
+    void ProcessMessages();
+    void SendMessage(std::shared_ptr<Message> msg);
     void InitWindow(int width, int height, const char* title);
     void Cleanup();
 private:
@@ -51,8 +59,9 @@ private:
     Scene* m_Scene = nullptr;
     Shader* m_Shader = nullptr;
     EditorContext* m_EditorContext = nullptr;
-    std::shared_ptr<RenderSystem> renderSystem = nullptr;
-    std::shared_ptr<CameraSystem> cameraSystem = nullptr;
+    std::queue<std::shared_ptr<Message>> m_MessageQueue;
+    std::shared_ptr<RenderSystem> renderSystem;
+    std::shared_ptr<CameraSystem> cameraSystem;
     
     
     float m_ViewportWidth, m_ViewportHeight;

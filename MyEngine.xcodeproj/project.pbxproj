@@ -39,6 +39,7 @@
 			buildPhase = 85AD40852EAF77D300778F66 /* Sources */;
 			membershipExceptions = (
 				"Header Files/ECS/ECSSystemManager.h",
+				"Header Files/MessageQueue.h",
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -49,6 +50,9 @@
 			exceptions = (
 				85C21AF62ECAA1E6008EB329 /* Exceptions for "MyEngine" folder in "Compile Sources" phase from "MyEngine" target */,
 			);
+			explicitFileTypes = {
+				"Header Files/MessageQueue.h" = sourcecode.c.h;
+			};
 			path = MyEngine;
 			sourceTree = "<group>";
 		};
