@@ -219,6 +219,7 @@ void EditorContext::DrawInspector()
         ShowCameraComponent();
         ShowMeshComponent();
         ShowLoadMeshButton();
+        ShowLoadTextureButton();
         
         if(ImGui::Button("Add Component"))
         {
@@ -431,6 +432,19 @@ void EditorContext::ShowLoadMeshButton()
     );
 
     if(pathEntered)m_EngineContext->PushMessage(std::make_shared<LoadMeshMessage>(m_MeshPath));
+}
+
+void EditorContext::ShowLoadTextureButton(){
+    ImGui::SeparatorText("Load Texture");
+    char m_TexturePath[128] = "Path";
+    bool pathEntered = ImGui::InputText(
+        "###TexturePath",
+        m_TexturePath,
+        IM_ARRAYSIZE(m_TexturePath),
+        ImGuiInputTextFlags_EnterReturnsTrue
+    );
+
+    if(pathEntered)m_EngineContext->PushMessage(std::make_shared<LoadTextureMessage>(m_TexturePath));
 }
 
 void EditorContext::SetSelectedEntity(Entity e){

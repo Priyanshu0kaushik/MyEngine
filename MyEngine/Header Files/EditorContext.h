@@ -35,6 +35,7 @@ private:
     void ShowCameraComponent();
     
     void ShowLoadMeshButton();
+    void ShowLoadTextureButton();
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;

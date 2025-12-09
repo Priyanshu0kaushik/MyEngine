@@ -9,7 +9,9 @@
 
 enum class MessageType{
     LoadMesh,
-    MeshLoaded
+    MeshLoaded,
+    LoadTexture,
+    TextureLoaded,
 };
 
 struct Message{
@@ -27,6 +29,31 @@ struct LoadMeshMessage : public Message
         path = p;
     }
 };
+
+struct LoadTextureMessage : public Message
+{
+    std::string path;
+
+    LoadTextureMessage(const char* p)
+    {
+        type = MessageType::LoadTexture;
+        path = p;
+    }
+};
+
+struct TextureLoadedMessage : public Message
+{
+    uint32_t textureID;
+    std::string path;
+
+    TextureLoadedMessage(uint32_t id, const char* p)
+    {
+        type = MessageType::TextureLoaded;
+        textureID = id;
+        path = p;
+    }
+};
+
 
 struct MeshLoadedMessage : public Message
 {

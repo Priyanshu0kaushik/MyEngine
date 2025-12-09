@@ -59,9 +59,9 @@ EngineContext::EngineContext(int width, int height, const char* title){
     TextureManager::Allocate();
     
     PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj"));
-    PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj"));
-    TextureManager::Get().LoadTexture("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png");
-    TextureManager::Get().LoadTexture("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png");
+//    PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj"));
+    PushMessage(std::make_shared<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png"));
+//    PushMessage(std::make_shared<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png"));
 
 
 }
@@ -198,6 +198,21 @@ void EngineContext::SendMessage(std::shared_ptr<Message> msg)
         {
             auto loadedMsg = std::static_pointer_cast<MeshLoadedMessage>(msg);
             std::cout << "Mesh loaded with ID: " << loadedMsg->meshID << std::endl;
+            break;
+        }
+        case MessageType::LoadTexture:
+        {
+            auto loadMsg = std::static_pointer_cast<LoadTextureMessage>(msg);
+            uint32_t id = TextureManager::Get().LoadTexture(loadMsg->path.c_str());
+
+            PushMessage(std::make_shared<TextureLoadedMessage>(id, loadMsg->path.c_str()));
+            break;
+        }
+
+        case MessageType::TextureLoaded:
+        {
+            auto loadedMsg = std::static_pointer_cast<TextureLoadedMessage>(msg);
+            std::cout << "Texture loaded with ID: " << loadedMsg->textureID << std::endl;
             break;
         }
     }
