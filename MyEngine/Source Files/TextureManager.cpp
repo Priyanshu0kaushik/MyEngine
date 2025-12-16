@@ -75,12 +75,38 @@ uint32_t TextureManager::LoadTexture(const char *path){
     return id;
 }
 
-uint32_t TextureManager::CreateTexture(const TextureData &textureData){
-    m_Textures.push_back(textureData);
-    return (uint32_t)m_Textures.size()-1;
+uint32_t TextureManager::CreateTexture(const TextureData &textureData)
+{
+    uint32_t id = m_NextTextureID++;
+    m_Textures[id] = textureData;
+    return id;
 }
 
-TextureData& TextureManager::GetTexture(uint32_t textureId){
-    return m_Textures[textureId];
+TextureData* TextureManager::GetTexture(uint32_t textureId){
+    if(textureId==UINT32_MAX) return nullptr;
+    return &m_Textures[textureId];
+}
+
+void TextureManager::ProcessMessage(Message* msg){
+    switch (msg->type)
+    {
+        case MessageType::LoadTexture:
+        {
+            auto loadMsg = static_cast<LoadTextureMessage*>(msg);
+            if(!loadMsg) return;
+            uint32_t id = TextureManager::Get().LoadTexture(loadMsg->path.c_str());
+
+            messageQueue->Push(std::make_unique<TextureLoadedMessage>(id, loadMsg->path.c_str()));
+            break;
+        }
+
+        case MessageType::TextureLoaded:
+        {
+            auto loadedMsg = static_cast<TextureLoadedMessage*>(msg);
+            if(!loadedMsg) return;
+            std::cout << "Texture loaded with ID: " << loadedMsg->textureID << std::endl;
+            break;
+        }
+    }
 }
 

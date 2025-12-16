@@ -14,8 +14,8 @@
 
 
 
-EngineContext::EngineContext(int width, int height, const char* title){
-    
+EngineContext::EngineContext(int width, int height, const char* title)
+{
     m_Coordinator = new Coordinator();
     m_Coordinator->Init();
     
@@ -55,13 +55,17 @@ EngineContext::EngineContext(int width, int height, const char* title){
     
     m_Scene = new Scene(*m_Coordinator, renderSystem, cameraSystem);
 
+    m_MessageQueue = std::make_shared<MessageQueue>();
     MeshManager::Allocate();
     TextureManager::Allocate();
+    MeshManager::Get().SetMessageQueue(m_MessageQueue);
+    TextureManager::Get().SetMessageQueue(m_MessageQueue);
     
-    PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj"));
-//    PushMessage(std::make_shared<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj"));
-    PushMessage(std::make_shared<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png"));
-//    PushMessage(std::make_shared<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png"));
+    
+    PushMessage(std::make_unique<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj"));
+    PushMessage(std::make_unique<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj"));
+    PushMessage(std::make_unique<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png"));
+    PushMessage(std::make_unique<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png"));
 
 
 }
@@ -146,6 +150,9 @@ void EngineContext::Draw(){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             
         ProcessMessages();
+        cameraSystem->Update();
+        if(m_Shader) renderSystem->Render(*m_Shader);
+
         if(bControllingCamera) cameraSystem->ProcessInput(m_Window, m_DeltaTime);
         
         if(m_Shader && cameraSystem){
@@ -154,9 +161,6 @@ void EngineContext::Draw(){
             m_Shader->SetMatrix4(cameraSystem->GetCameraProjection(), "projection");
         }
 
-        if(m_Scene){
-            m_Scene->Render(*m_Shader);
-        }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // ImGUI
@@ -181,50 +185,17 @@ void EngineContext::DeleteEntity(Entity aEntity){
     if(m_Scene) m_Scene->RemoveEntity(aEntity);
 }
 
-void EngineContext::SendMessage(std::shared_ptr<Message> msg)
+void EngineContext::SendMessage(std::unique_ptr<Message> msg)
 {
-    switch (msg->type)
-    {
-        case MessageType::LoadMesh:
-        {
-            auto loadMsg = std::static_pointer_cast<LoadMeshMessage>(msg);
-            uint32_t id = MeshManager::Get().LoadMesh(loadMsg->path);
-
-            PushMessage(std::make_shared<MeshLoadedMessage>(id, loadMsg->path.c_str()));
-            break;
-        }
-
-        case MessageType::MeshLoaded:
-        {
-            auto loadedMsg = std::static_pointer_cast<MeshLoadedMessage>(msg);
-            std::cout << "Mesh loaded with ID: " << loadedMsg->meshID << std::endl;
-            break;
-        }
-        case MessageType::LoadTexture:
-        {
-            auto loadMsg = std::static_pointer_cast<LoadTextureMessage>(msg);
-            uint32_t id = TextureManager::Get().LoadTexture(loadMsg->path.c_str());
-
-            PushMessage(std::make_shared<TextureLoadedMessage>(id, loadMsg->path.c_str()));
-            break;
-        }
-
-        case MessageType::TextureLoaded:
-        {
-            auto loadedMsg = std::static_pointer_cast<TextureLoadedMessage>(msg);
-            std::cout << "Texture loaded with ID: " << loadedMsg->textureID << std::endl;
-            break;
-        }
-    }
+    MeshManager::Get().ProcessMessage(msg.get());
+    TextureManager::Get().ProcessMessage(msg.get());
 }
 
 void EngineContext::ProcessMessages(){
-    while (!m_MessageQueue.empty())
-    {
-        auto msg = m_MessageQueue.front();
-        m_MessageQueue.pop();
-
-        SendMessage(msg);
+    auto msg = m_MessageQueue->Pop();
+    while(msg!=nullptr){
+        SendMessage(std::move(msg));
+        msg = m_MessageQueue->Pop();
     }
 }
 

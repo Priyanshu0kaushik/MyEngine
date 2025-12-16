@@ -11,7 +11,7 @@
 #include "RenderSystem.h"
 #include "CameraSystem.h"
 #include "ECS/Coordinator.h"
-#include "Message.h"
+#include "MessageQueue.h"
 
 #include <queue>
 #include <memory>
@@ -36,8 +36,8 @@ public:
     void OnStartControlCam();
     void OnReleaseCamControl();
     
-    void PushMessage(std::shared_ptr<Message> msg){
-        m_MessageQueue.push(msg);
+    void PushMessage(std::unique_ptr<Message> msg){
+        m_MessageQueue->Push(std::move(msg));
     }
     static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
         EngineContext* engineContext = reinterpret_cast<EngineContext*>(glfwGetWindowUserPointer(window));
@@ -50,7 +50,7 @@ public:
     void DeleteEntity(Entity aEntity);
 private:
     void ProcessMessages();
-    void SendMessage(std::shared_ptr<Message> msg);
+    void SendMessage(std::unique_ptr<Message> msg);
     void InitWindow(int width, int height, const char* title);
     void Cleanup();
 private:
@@ -59,7 +59,7 @@ private:
     Scene* m_Scene = nullptr;
     Shader* m_Shader = nullptr;
     EditorContext* m_EditorContext = nullptr;
-    std::queue<std::shared_ptr<Message>> m_MessageQueue;
+    std::shared_ptr<MessageQueue> m_MessageQueue;
     std::shared_ptr<RenderSystem> renderSystem;
     std::shared_ptr<CameraSystem> cameraSystem;
     

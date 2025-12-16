@@ -25,14 +25,14 @@ void RenderSystem::UploadMeshIfNeeded(Entity e, MeshComponent* mc)
 {
     if (mc->uploaded) return;
 
-    auto& mesh = MeshManager::Get().GetMesh(mc->meshID);
-
+    auto* mesh = MeshManager::Get().GetMesh(mc->meshID);
+    if(mesh==nullptr) return;
     std::vector<float> gpuVertices;
     std::vector<uint32_t> gpuIndices;
-    gpuVertices.reserve(mesh.vertices.size() * 8);
-    gpuIndices.reserve(mesh.faces.size() * 3);
+    gpuVertices.reserve(mesh->vertices.size() * 8);
+    gpuIndices.reserve(mesh->faces.size() * 3);
 
-    for (const auto& v : mesh.vertices)
+    for (const auto& v : mesh->vertices)
     {
         gpuVertices.push_back(v.position.x);
         gpuVertices.push_back(v.position.y);
@@ -46,7 +46,7 @@ void RenderSystem::UploadMeshIfNeeded(Entity e, MeshComponent* mc)
         gpuVertices.push_back(v.uv.y);
     }
 
-    for (const auto& face : mesh.faces)
+    for (const auto& face : mesh->faces)
     {
         for (int index : face.vertexIndices)
             gpuIndices.push_back(index);
@@ -108,9 +108,11 @@ void RenderSystem::Render(Shader& shader)
         shader.SetMatrix4(model, "transform");
         if (meshComp->textureID != UINT32_MAX)
        {
-           TextureData& Texture = TextureManager::Get().GetTexture(meshComp->textureID);
+           TextureData* Texture = TextureManager::Get().GetTexture(meshComp->textureID);
+           if(Texture==nullptr) return;
+           
            glActiveTexture(GL_TEXTURE0);
-           glBindTexture(GL_TEXTURE_2D, Texture.TextureObject);
+           glBindTexture(GL_TEXTURE_2D, Texture->TextureObject);
            glUniform1i(glGetUniformLocation(shader.shaderProgram, "texture1"), 0);
        }
         glBindVertexArray(meshComp->VAO);

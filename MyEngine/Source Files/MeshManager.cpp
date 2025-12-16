@@ -41,6 +41,7 @@ MeshManager& MeshManager::Get()
 
 uint32_t MeshManager::LoadMesh(const std::string& path)
 {
+    PrintMemory();
     if (m_PathToID.find(path) != m_PathToID.end())
         return m_PathToID[path];
 
@@ -148,13 +149,15 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
 
 uint32_t MeshManager::CreateMesh(const Mesh& meshData)
 {
-    m_Meshes.push_back(meshData);
-    return (uint32_t)m_Meshes.size() - 1;
+    uint32_t id = m_NextMeshID++;
+    m_Meshes[id] = meshData;
+    return id;
 }
 
-Mesh& MeshManager::GetMesh(uint32_t meshID)
+Mesh* MeshManager::GetMesh(uint32_t meshID)
 {
-    return m_Meshes[meshID];
+    if(meshID == UINT32_MAX) return nullptr;
+    return &m_Meshes[meshID];
 }
 
 void MeshManager::TriangulateFace(const std::vector<int> &polygonIndices, std::vector<Face> &outFaces){
@@ -291,4 +294,27 @@ bool MeshManager::LoadMeshBinary(const std::string &path, Mesh &outMesh)
 
     in.close();
     return true;
+}
+
+void MeshManager::ProcessMessage(Message* msg)
+{
+    switch (msg->type)
+    {
+        case MessageType::LoadMesh:
+        {
+            auto loadMsg = static_cast<LoadMeshMessage*>(msg);            if(!loadMsg) return;
+            uint32_t id = LoadMesh(loadMsg->path);
+            
+            messageQueue->Push(std::make_unique<MeshLoadedMessage>(id, loadMsg->path.c_str()));
+            break;
+        }
+            
+        case MessageType::MeshLoaded:
+        {
+            auto loadedMsg = static_cast<MeshLoadedMessage*>(msg);
+            if(!loadedMsg) return;
+            std::cout << "Mesh loaded with ID: " << loadedMsg->meshID << std::endl;
+            break;
+        }
+    }
 }

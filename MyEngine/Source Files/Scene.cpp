@@ -58,7 +58,6 @@ void Scene::RenameEntity(Entity e, const char* newName)
 
 void Scene::Render(Shader& shader)
 {
-    renderSystem->Render(shader);
 }
 
 int Scene::NameExistCount(Entity e, const char* aName){

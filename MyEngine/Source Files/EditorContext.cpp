@@ -431,7 +431,7 @@ void EditorContext::ShowLoadMeshButton()
         ImGuiInputTextFlags_EnterReturnsTrue
     );
 
-    if(pathEntered)m_EngineContext->PushMessage(std::make_shared<LoadMeshMessage>(m_MeshPath));
+    if(pathEntered)m_EngineContext->PushMessage(std::make_unique<LoadMeshMessage>(m_MeshPath));
 }
 
 void EditorContext::ShowLoadTextureButton(){
@@ -444,7 +444,7 @@ void EditorContext::ShowLoadTextureButton(){
         ImGuiInputTextFlags_EnterReturnsTrue
     );
 
-    if(pathEntered)m_EngineContext->PushMessage(std::make_shared<LoadTextureMessage>(m_TexturePath));
+    if(pathEntered)m_EngineContext->PushMessage(std::make_unique<LoadTextureMessage>(m_TexturePath));
 }
 
 void EditorContext::SetSelectedEntity(Entity e){
