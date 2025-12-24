@@ -107,6 +107,7 @@ void TextureManager::ProcessMessage(Message* msg){
             std::cout << "Texture loaded with ID: " << loadedMsg->textureID << std::endl;
             break;
         }
+        default:{}
     }
 }
 

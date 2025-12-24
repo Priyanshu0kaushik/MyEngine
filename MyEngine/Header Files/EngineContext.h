@@ -45,6 +45,7 @@ public:
             engineContext->cameraSystem->ProcessMouseScroll(static_cast<float>(yoffset));
         }
     }
+    
 public:
     Entity CreateEntity(char* Name);
     void DeleteEntity(Entity aEntity);
@@ -59,6 +60,7 @@ private:
     Scene* m_Scene = nullptr;
     Shader* m_Shader = nullptr;
     EditorContext* m_EditorContext = nullptr;
+    
     std::shared_ptr<MessageQueue> m_MessageQueue;
     std::shared_ptr<RenderSystem> renderSystem;
     std::shared_ptr<CameraSystem> cameraSystem;

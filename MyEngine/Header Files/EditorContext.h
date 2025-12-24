@@ -8,6 +8,7 @@
 #pragma once
 #include "imgui.h"
 #include "ECS/Coordinator.h"
+#include "UI/UIPanel.h"
 
 class GLFWwindow;
 class EngineContext;
@@ -22,27 +23,16 @@ public:
     void Render();
 private:
     void ShowViewport();
-    void ShowHierarchy();
-    void DrawInspector();
-    void RenameRender();
     void DisplayFPS();
-    void SetSelectedEntity(Entity e);
-    
-    void ShowAddComponentsList();
-    void ShowNameComponent();
-    void ShowTransformComponent();
-    void ShowMeshComponent();
-    void ShowCameraComponent();
-    
-    void ShowLoadMeshButton();
-    void ShowLoadTextureButton();
 private:
     ImGuiIO* io;
     EngineContext* m_EngineContext = nullptr;
     Entity m_SelectedEntity;
     Coordinator* m_Coordinator;
-    char m_SelectedEntityName[128] = "Name";
-
+    
+    std::vector<UIPanel*> UIPanels;
+    
     bool bCameraCapturing = false;
 
+    EditorDrawContext context;
 };

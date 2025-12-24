@@ -302,7 +302,8 @@ void MeshManager::ProcessMessage(Message* msg)
     {
         case MessageType::LoadMesh:
         {
-            auto loadMsg = static_cast<LoadMeshMessage*>(msg);            if(!loadMsg) return;
+            auto loadMsg = static_cast<LoadMeshMessage*>(msg);
+            if(!loadMsg) return;
             uint32_t id = LoadMesh(loadMsg->path);
             
             messageQueue->Push(std::make_unique<MeshLoadedMessage>(id, loadMsg->path.c_str()));
@@ -316,5 +317,7 @@ void MeshManager::ProcessMessage(Message* msg)
             std::cout << "Mesh loaded with ID: " << loadedMsg->meshID << std::endl;
             break;
         }
+        default:
+        {}
     }
 }

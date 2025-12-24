@@ -16,6 +16,8 @@
 #include "TextureManager.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "HierarchyPanel.h"
+#include "InspectorPanel.h"
 #include <iostream>
 #include <string>
 
@@ -74,6 +76,12 @@ void EditorContext::Init(GLFWwindow* aWindow, EngineContext* engine){
     ImGui_ImplGlfw_InitForOpenGL(aWindow, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
     
+    // UIs Panels Init
+    context.coordinator = m_Coordinator;
+    context.engine = m_EngineContext;
+    context.selectedEntity = &m_SelectedEntity;
+    UIPanels.push_back(new HierarchyPanel());
+    UIPanels.push_back(new InspectorPanel());
 }
 
 void EditorContext::BeginFrame(){
@@ -105,8 +113,10 @@ void EditorContext::BeginFrame(){
 }
 void EditorContext::Render(){
     ShowViewport();
-    ShowHierarchy();
-    DrawInspector();
+
+    for(UIPanel* UI : UIPanels){
+        UI->Draw(context);
+    }
     
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -167,289 +177,4 @@ void EditorContext::DisplayFPS(){
     );
 
     drawList->AddText(pos, IM_COL32(255, 255, 255, 255), text.c_str());
-}
-
-void EditorContext::ShowHierarchy(){
-    ImGui::Begin("Hierarchy");
-    const std::vector<Entity>& aliveEntities = m_Coordinator->GetAliveEntities();
-    
-
-    for (size_t i = 0; i < aliveEntities.size(); i++)
-    {
-        Entity e = aliveEntities[i];
-        std::string label = "EntityNameDefault";
-        if(NameComponent* nC = m_Coordinator->GetComponent<NameComponent>(e)) label = nC->Name;
-
-        bool isSelected = (m_SelectedEntity == e);
-        if (ImGui::Selectable(label.c_str(), isSelected))
-        {
-            SetSelectedEntity(e);
-            strcpy(m_SelectedEntityName, m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity)->Name.c_str());
-            
-        }
-        if (ImGui::BeginPopupContextItem(("object_context_menu##" + std::to_string(e)).c_str())) {
-            if (ImGui::MenuItem("Delete"))
-            {
-                if(m_EngineContext){
-                    m_EngineContext->DeleteEntity(e);
-                    SetSelectedEntity(UINT32_MAX);
-                }
-            }
-            ImGui::EndPopup();
-        }
-
-    }
-    if (ImGui::Button("Add GameObject"))
-    {
-        SetSelectedEntity(m_EngineContext->CreateEntity("GameObject"));
-    }
-    ImGui::End();
-}
-
-void EditorContext::DrawInspector()
-{
-    if(m_SelectedEntity == UINT32_MAX) return;
-    ImGui::Begin("Inspector");
-
-    
-    if (m_Coordinator->DoesEntityExist(m_SelectedEntity))
-    {
-        ShowNameComponent();
-        ShowTransformComponent();
-        ShowCameraComponent();
-        ShowMeshComponent();
-        ShowLoadMeshButton();
-        ShowLoadTextureButton();
-        
-        if(ImGui::Button("Add Component"))
-        {
-            ImGui::OpenPopup("AddComponentPopup");
-        }
-        
-    }
-    ShowAddComponentsList();
-
-    ImGui::End();
-}
-
-void EditorContext::ShowAddComponentsList()
-{
-    if(ImGui::BeginPopup("AddComponentPopup"))
-    {
-        ImGui::Text("Select Component");
-        ImGui::Separator();
-        static char search[64] = "";
-        ImGui::InputText("Search", search, IM_ARRAYSIZE(search));
-
-        for (std::string name : m_Coordinator->GetComponentNames())
-        {
-            if (strstr(name.c_str(), search)!=nullptr)
-            {
-                if (ImGui::Selectable(name.c_str()))
-                {
-                    m_Coordinator->AddComponentByName(m_SelectedEntity, name.c_str());
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-        }
-        ImGui::EndPopup();
-    }
-}
-
-void EditorContext::ShowNameComponent()
-{
-    NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
-    if(!nameComponent) return;
-    ImGui::Text("Name");
-    RenameRender();
-    ImGui::Separator();
-
-}
-void EditorContext::ShowTransformComponent()
-{
-    TransformComponent* tc = m_Coordinator->GetComponent<TransformComponent>(m_SelectedEntity);
-    if(!tc) return;
-    ImGui::SeparatorText("Transform Component");
-    glm::vec3 pos = tc->position;
-    ImGui::Text("Position");
-    if (ImGui::DragFloat3("###Position", &pos.x, 0.1f))
-        tc->position=pos;
-
-    glm::vec3 rot = tc->rotation;
-    ImGui::Text("Rotation");
-    if (ImGui::DragFloat3("###Rotation", &rot.x, 0.1f))
-        tc->rotation = rot;
-
-    glm::vec3 scale = tc->scale;
-    ImGui::Text("Scale");
-    if (ImGui::DragFloat3("###Scale", &scale.x, 0.1f, 0.01f, 10.0f))
-        tc->scale = scale;
-
-    ImGui::Separator();
-
-}
-void EditorContext::ShowMeshComponent()
-{
-    if(!m_Coordinator->GetComponent<MeshComponent>(m_SelectedEntity)) return;
-    
-    MeshComponent* mesh = m_Coordinator->GetComponent<MeshComponent>(m_SelectedEntity);
-    ImGui::SeparatorText("Mesh Component");
-
-    auto& allMeshes = MeshManager::Get().GetAllMeshes();
-
-    std::string currentMeshName = "Unknown";
-    
-    for (auto& [path, id] : allMeshes)
-    {
-        if (id == mesh->meshID)
-        {
-            currentMeshName = path;
-            break;
-        }
-    }
-
-    ImGui::Text("Current Mesh:");
-    ImGui::TextWrapped("%s", currentMeshName.c_str());
-
-    ImGui::Spacing();
-    ImGui::TextWrapped("Change Mesh");
-    if (ImGui::BeginCombo("###Change Mesh", currentMeshName.c_str()))
-    {
-        for (auto& [path, id] : allMeshes)
-        {
-            bool isSelected = (id == mesh->meshID);
-            if (ImGui::Selectable(path.c_str(), isSelected))
-            {
-                mesh->meshID = id;
-                mesh->uploaded = false;
-            }
-
-            if (isSelected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
-    
-    
-    ImGui::Separator();
-    
-    auto& Textures = TextureManager::Get().GetAllTextures();
-
-    std::string currentTextureName = "Unknown";
-    
-    for (auto& [path, id] : Textures)
-    {
-        if (id == mesh->textureID)
-        {
-            currentTextureName = path;
-            break;
-        }
-    }
-
-    ImGui::Text("Current Texture:");
-    ImGui::TextWrapped("%s", currentTextureName.c_str());
-
-    ImGui::Spacing();
-    ImGui::TextWrapped("Change Texture");
-    if (ImGui::BeginCombo("###Change Texture", currentTextureName.c_str()))
-    {
-        for (auto& [path, id] : Textures)
-        {
-            bool isSelected = (id == mesh->textureID);
-            if (ImGui::Selectable(path.c_str(), isSelected))
-            {
-                mesh->textureID = id;
-            }
-
-            if (isSelected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
-    ImGui::Separator();
-
-}
-
-void EditorContext::ShowCameraComponent()
-{
-    CameraComponent* cam = m_Coordinator->GetComponent<CameraComponent>(m_SelectedEntity);
-    if(!cam) return;
-    ImGui::SeparatorText("Camera Component");
-    float fov = cam->Fov;
-    ImGui::Text("FOV");
-    if (ImGui::DragFloat("###FOV", &fov, 0.1f))
-        cam->Fov=fov;
-
-    float near = cam->Near;
-    ImGui::Text("Near");
-    if (ImGui::DragFloat("###Near", &near, 0.1f))
-        cam->Near=near;
-
-    float far = cam->Far;
-    ImGui::Text("Far");
-    if (ImGui::DragFloat("###Far", &far, 0.1f))
-        cam->Far=far;
-
-    
-    ImGui::Separator();
-    
-}
-
-void EditorContext::RenameRender()
-{
-    bool enterPressed =
-        ImGui::InputText(
-            "###Name",
-            m_SelectedEntityName,
-            IM_ARRAYSIZE(m_SelectedEntityName),
-            ImGuiInputTextFlags_EnterReturnsTrue
-        );
-    if (enterPressed || ImGui::IsItemDeactivatedAfterEdit())
-    {
-        std::string trimmed = m_SelectedEntityName;
-        trimmed.erase(0, trimmed.find_first_not_of(" \t\n"));
-        trimmed.erase(trimmed.find_last_not_of(" \t\n") + 1);
-        
-        strcpy(m_SelectedEntityName, trimmed.c_str());
-        NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
-        if(m_Coordinator->DoesEntityExist(m_SelectedEntity) && !trimmed.empty() &&
-           trimmed !=nameComponent->Name.c_str()){
-            if(m_EngineContext) m_EngineContext->GetScene()->RenameEntity(m_SelectedEntity, trimmed.c_str());
-        }
-        else strcpy(m_SelectedEntityName, nameComponent->Name.c_str());
-    }
-}
-
-void EditorContext::ShowLoadMeshButton()
-{
-    ImGui::SeparatorText("Load Mesh");
-    char m_MeshPath[128] = "Path";
-    bool pathEntered = ImGui::InputText(
-        "###MeshPath",
-         m_MeshPath,
-        IM_ARRAYSIZE(m_MeshPath),
-        ImGuiInputTextFlags_EnterReturnsTrue
-    );
-
-    if(pathEntered)m_EngineContext->PushMessage(std::make_unique<LoadMeshMessage>(m_MeshPath));
-}
-
-void EditorContext::ShowLoadTextureButton(){
-    ImGui::SeparatorText("Load Texture");
-    char m_TexturePath[128] = "Path";
-    bool pathEntered = ImGui::InputText(
-        "###TexturePath",
-        m_TexturePath,
-        IM_ARRAYSIZE(m_TexturePath),
-        ImGuiInputTextFlags_EnterReturnsTrue
-    );
-
-    if(pathEntered)m_EngineContext->PushMessage(std::make_unique<LoadTextureMessage>(m_TexturePath));
-}
-
-void EditorContext::SetSelectedEntity(Entity e){
-    m_SelectedEntity = e;
-    if(!m_Coordinator->DoesEntityExist(e)) return;
-    NameComponent* nameComponent = m_Coordinator->GetComponent<NameComponent>(m_SelectedEntity);
-    strcpy(m_SelectedEntityName, nameComponent->Name.c_str());
 }

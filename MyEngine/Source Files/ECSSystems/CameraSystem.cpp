@@ -23,7 +23,7 @@ void CameraSystem::Init()
 
 void CameraSystem::Update()
 {
-    
+    OnPlayMode();
 }
 
 void CameraSystem::OnPlayMode()
@@ -49,6 +49,7 @@ glm::mat4 CameraSystem::GetView() const{
     CameraComponent* camera = m_Coordinator->GetComponent<CameraComponent>(m_MainCam);
     return glm::lookAt(transform->position, transform->position + camera->Front, camera->Up);
 }
+
 glm::mat4 CameraSystem::GetCameraProjection() const{
     if(m_MainCam==UINT32_MAX) return glm::mat4();
     CameraComponent* camera = m_Coordinator->GetComponent<CameraComponent>(m_MainCam);
