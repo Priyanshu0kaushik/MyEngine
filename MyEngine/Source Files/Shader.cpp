@@ -30,11 +30,11 @@ std::string Shader::LoadShader(const char *aPath){
     return shaderCode;
 }
 
-unsigned int Shader::LoadVertexShader(const char *aPath){
+unsigned int Shader::LoadVertexShader(){
     int result;
     char Log[512];
     
-    std::string shaderCodeString = LoadShader(aPath);
+    std::string shaderCodeString = LoadShader(m_VertexPath.c_str());
     const char* shaderCode = shaderCodeString.c_str();
     
     unsigned int shaderObject;
@@ -52,11 +52,11 @@ unsigned int Shader::LoadVertexShader(const char *aPath){
     return shaderObject;
 }
 
-unsigned int Shader::LoadFragmentShader(const char *aPath){
+unsigned int Shader::LoadFragmentShader(){
     int result;
     char Log[512];
     
-    std::string shaderCodeString = LoadShader(aPath);
+    std::string shaderCodeString = LoadShader(m_FragmentPath.c_str());
     const char* shaderCode = shaderCodeString.c_str();
     
     unsigned int shaderObject;
@@ -75,26 +75,47 @@ unsigned int Shader::LoadFragmentShader(const char *aPath){
 }
 
 
-Shader::Shader(const char* aVertexPath, const char* aFragmentPath){
+Shader::Shader(const char* aVertexPath, const char* aFragmentPath)
+{
+    m_VertexPath = aVertexPath;
+    m_FragmentPath = aFragmentPath;
+    
+    Reload();
+}
+
+void Shader::Reload()
+{
+    
     int result;
     char Log[512];
     
-    unsigned int VertexShader = LoadVertexShader(aVertexPath);
-    unsigned int FragmentShader = LoadFragmentShader(aFragmentPath);
+    unsigned int VertexShader = LoadVertexShader();
+    unsigned int FragmentShader = LoadFragmentShader();
     
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, VertexShader);
-    glAttachShader(shaderProgram, FragmentShader);
-    glLinkProgram(shaderProgram);
+    unsigned int newProgram = glCreateProgram();
+    glAttachShader(newProgram, VertexShader);
+    glAttachShader(newProgram, FragmentShader);
+    glLinkProgram(newProgram);
     
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &result);
+    glGetProgramiv(newProgram, GL_LINK_STATUS, &result);
     
     if(!result){
-        glGetProgramInfoLog(shaderProgram, 512, NULL, Log);
+        glGetProgramInfoLog(newProgram, 512, NULL, Log);
         std::cout<<"Failed to compile vertex shader: "<< Log << std::endl;
+        glDeleteShader(VertexShader);
+        glDeleteShader(FragmentShader);
+        glDeleteProgram(newProgram);
+        return;
     }
+    if (shaderProgram != 0) {
+        glDeleteProgram(shaderProgram);
+    }
+    shaderProgram = newProgram;
+    std::cout << "Shader Hot Reloaded Successfully!" << std::endl;
+    
     glDeleteShader(VertexShader);
     glDeleteShader(FragmentShader);
+
 }
 
 void Shader::Use(){

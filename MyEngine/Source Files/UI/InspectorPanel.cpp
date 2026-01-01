@@ -172,6 +172,11 @@ void InspectorPanel::ShowMeshComponent()
         }
         ImGui::EndCombo();
     }
+    
+    if(ImGui::Button("Reload Shader")){
+        m_Context.engine->GetShader()->Reload();
+    }
+    
     ImGui::Separator();
 
 }

@@ -19,7 +19,7 @@ uniform vec4 materialDiffuse = vec4(1, 1, 1, 1);
 uniform vec4 materialSpecular = vec4(1, 1, 1, 1);
 uniform float materialShininess = 32.0;
 
-uniform vec3 light_position = vec3(10, 25, 15);
+uniform vec3 light_position = vec3(1, 10, 12);
 uniform vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
 uniform vec4 light_diffuse = vec4(1, 0.9, 0.8, 1);
 uniform vec4 light_specular = vec4(0.9, 0.8, 0.7, 1);
