@@ -105,7 +105,7 @@ void RenderSystem::Render(Shader& shader)
         UploadMeshIfNeeded(e, meshComp);
 
         glm::mat4 model = BuildModelMatrix(transform);
-        shader.SetMatrix4(model, "transform");
+        shader.SetMatrix4(model, "transformMatrix");
         if (meshComp->textureID != UINT32_MAX)
        {
            TextureData* Texture = TextureManager::Get().GetTexture(meshComp->textureID);

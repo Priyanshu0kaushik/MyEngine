@@ -157,8 +157,8 @@ void EngineContext::Draw(){
         
         if(m_Shader && cameraSystem){
             m_Shader->Use();
-            m_Shader->SetMatrix4(cameraSystem->GetView(), "view");
-            m_Shader->SetMatrix4(cameraSystem->GetCameraProjection(), "projection");
+            m_Shader->SetMatrix4(cameraSystem->GetView(), "viewMatrix");
+            m_Shader->SetMatrix4(cameraSystem->GetCameraProjection(), "projectionMatrix");
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

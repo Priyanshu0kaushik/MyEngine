@@ -60,7 +60,7 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
         std::vector<glm::vec3> tempPositions;
         std::vector<glm::vec2> tempUVs;
         std::vector<glm::vec3> tempNormals;
-
+        
         std::ifstream file(path);
         if (!file.is_open())
         {
@@ -74,7 +74,7 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
             std::stringstream ss(line);
             std::string prefix;
             ss >> prefix;
-
+            
             if (prefix == "v")
             {
                 glm::vec3 pos;
@@ -98,28 +98,36 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
             {
                 std::vector<int> polygonIndices;
                 std::string vertexData;
+                std::unordered_map<std::string, int> uniqueVertices;
 
                 while (ss >> vertexData)
                 {
-                    std::stringstream vs(vertexData);
-                    std::string vStr, tStr, nStr;
+                    if (uniqueVertices.count(vertexData) > 0)
+                    {
+                        polygonIndices.push_back(uniqueVertices[vertexData]);
+                    }
+                    else
+                    {
+                        std::stringstream vs(vertexData);
+                        std::string vStr, tStr, nStr;
 
-                    std::getline(vs, vStr, '/');
-                    std::getline(vs, tStr, '/');
-                    std::getline(vs, nStr, '/');
+                        std::getline(vs, vStr, '/');
+                        std::getline(vs, tStr, '/');
+                        std::getline(vs, nStr, '/');
 
-                    int vIndex = std::stoi(vStr) - 1;
-                    int tIndex = tStr.empty() ? -1 : std::stoi(tStr) - 1;
-                    int nIndex = nStr.empty() ? -1 : std::stoi(nStr) - 1;
+                        int vIndex = std::stoi(vStr) - 1;
+                        int tIndex = tStr.empty() ? -1 : std::stoi(tStr) - 1;
+                        int nIndex = nStr.empty() ? -1 : std::stoi(nStr) - 1;
 
-                    Vertex vert;
-                    vert.position = tempPositions[vIndex];
-                    vert.uv = (tIndex >= 0 ? tempUVs[tIndex] : glm::vec2(0.0f));
-                    vert.normal = (nIndex >= 0 ? tempNormals[nIndex] : glm::vec3(0, 1, 0));
+                        Vertex vert;
+                        vert.position = tempPositions[vIndex];
+                        vert.uv = (tIndex >= 0 ? tempUVs[tIndex] : glm::vec2(0.0f));
+                        vert.normal = (nIndex >= 0 ? tempNormals[nIndex] : glm::vec3(0, 1, 0));
 
-                    meshData.vertices.push_back(vert);
+                        meshData.vertices.push_back(vert);
 
-                    polygonIndices.push_back((int)meshData.vertices.size() - 1);
+                        polygonIndices.push_back((int)meshData.vertices.size() - 1);
+                    }
                 }
 
                 if (polygonIndices.size() == 3)
@@ -245,10 +253,7 @@ bool MeshManager::SaveMeshBinary(const std::string &path, const Mesh &mesh)
     
     for (const Face& face : mesh.faces)
     {
-        uint32_t indexCount = (uint32_t)face.vertexIndices.size();
-        out.write((char*)&indexCount, sizeof(uint32_t));
-        out.write((char*)face.vertexIndices.data(),
-                  indexCount * sizeof(int));
+        out.write((char*)face.vertexIndices.data(), 3 * sizeof(int));
     }
 
     out.close();
@@ -282,13 +287,9 @@ bool MeshManager::LoadMeshBinary(const std::string &path, Mesh &outMesh)
     {
         Face face;
 
-        uint32_t indexCount = 0;
-        in.read((char*)&indexCount, sizeof(uint32_t));
-
-        face.vertexIndices.resize(indexCount);
-        in.read((char*)face.vertexIndices.data(),
-                indexCount * sizeof(int));
-
+        face.vertexIndices.resize(3);
+        in.read((char*)face.vertexIndices.data(), 3 * sizeof(int));
+        
         outMesh.faces.push_back(face);
     }
 
