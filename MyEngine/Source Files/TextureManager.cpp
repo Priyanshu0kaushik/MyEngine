@@ -12,30 +12,9 @@
 #include "stb_image.h"
 #include <assert.h>
 
-
-
-TextureManager* TextureManager::instance = nullptr;
-
-
-TextureManager::TextureManager ()
-{
+TextureManager::TextureManager(){
     
 }
-void TextureManager::Allocate()
-{
-    assert(instance == nullptr);
-    if (instance) return;
-    instance = new TextureManager();
-}
-
-void TextureManager::DeAllocate(){
-    delete instance;
-}
-
-TextureManager& TextureManager::Get()
-{
-    return *instance;
-};
 
 uint32_t TextureManager::LoadTexture(const char *path){
     if (m_PathToID.find(path) != m_PathToID.end())
@@ -61,7 +40,7 @@ uint32_t TextureManager::LoadTexture(const char *path){
     
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, format, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, Texture.Width, Texture.Height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -86,28 +65,3 @@ TextureData* TextureManager::GetTexture(uint32_t textureId){
     if(textureId==UINT32_MAX) return nullptr;
     return &m_Textures[textureId];
 }
-
-void TextureManager::ProcessMessage(Message* msg){
-    switch (msg->type)
-    {
-        case MessageType::LoadTexture:
-        {
-            auto loadMsg = static_cast<LoadTextureMessage*>(msg);
-            if(!loadMsg) return;
-            uint32_t id = TextureManager::Get().LoadTexture(loadMsg->path.c_str());
-
-            messageQueue->Push(std::make_unique<TextureLoadedMessage>(id, loadMsg->path.c_str()));
-            break;
-        }
-
-        case MessageType::TextureLoaded:
-        {
-            auto loadedMsg = static_cast<TextureLoadedMessage*>(msg);
-            if(!loadedMsg) return;
-            std::cout << "Texture loaded with ID: " << loadedMsg->textureID << std::endl;
-            break;
-        }
-        default:{}
-    }
-}
-

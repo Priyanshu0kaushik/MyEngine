@@ -7,8 +7,7 @@
 
 #include "RenderSystem.h"
 #include "Coordinator.h"
-#include "MeshManager.h"
-#include "TextureManager.h"
+#include "AssetManager.h"
 #include "glad.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -25,7 +24,7 @@ void RenderSystem::UploadMeshIfNeeded(Entity e, MeshComponent* mc)
 {
     if (mc->uploaded) return;
 
-    auto* mesh = MeshManager::Get().GetMesh(mc->meshID);
+    auto* mesh = AssetManager::Get().GetMeshManager().GetMesh(mc->meshID);
     if(mesh==nullptr) return;
     std::vector<float> gpuVertices;
     std::vector<uint32_t> gpuIndices;
@@ -108,12 +107,12 @@ void RenderSystem::Render(Shader& shader)
         shader.SetMatrix4(model, "transformMatrix");
         if (meshComp->textureID != UINT32_MAX)
        {
-           TextureData* Texture = TextureManager::Get().GetTexture(meshComp->textureID);
+           TextureData* Texture = AssetManager::Get().GetTextureManager().GetTexture(meshComp->textureID);
            if(Texture==nullptr) return;
            
            glActiveTexture(GL_TEXTURE0);
            glBindTexture(GL_TEXTURE_2D, Texture->TextureObject);
-           glUniform1i(glGetUniformLocation(shader.shaderProgram, "texture1"), 0);
+           glUniform1i(glGetUniformLocation(shader.shaderProgram, "mainTexture"), 0);
        }
         glBindVertexArray(meshComp->VAO);
         glDrawElements(GL_TRIANGLES, meshComp->indexCount, GL_UNSIGNED_INT, 0);

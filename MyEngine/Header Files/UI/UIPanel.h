@@ -23,5 +23,6 @@ struct EditorDrawContext {
 class UIPanel{
 public:
     virtual ~UIPanel() = default;
+    virtual void Init(EditorDrawContext& context);
     virtual void Draw(EditorDrawContext& context) = 0;
 };

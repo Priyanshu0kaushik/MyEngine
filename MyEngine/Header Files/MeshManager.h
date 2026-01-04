@@ -17,31 +17,22 @@
 class MeshManager {
 public:
     MeshManager();
-    static void Allocate();
-    static MeshManager& Get();
     static void PrintMemory();
-    static void DeAllocate();
     
     uint32_t LoadMesh(const std::string& path);
     Mesh* GetMesh(uint32_t meshID);
     void TriangulateFace(const std::vector<int>& polygonIndices, std::vector<Face>& outFaces);
 
     std::unordered_map<std::string, uint32_t>& GetAllMeshes(){return m_PathToID;}
-    void ProcessMessage(Message* msg);
     
-    void SetMessageQueue(std::shared_ptr<MessageQueue> q) { messageQueue = q; }
-
 private:
     uint32_t CreateMesh(const Mesh& meshData);
     void UploadToGPU(Mesh& mesh);
     
     bool SaveMeshBinary(const std::string& path, const Mesh& mesh);
     bool LoadMeshBinary(const std::string& path, Mesh& outMesh);
-
     
 private:
-    static MeshManager* instance;
-    std::shared_ptr<MessageQueue> messageQueue;
 
     std::unordered_map<uint32_t, Mesh> m_Meshes;
     uint32_t m_NextMeshID = 1;

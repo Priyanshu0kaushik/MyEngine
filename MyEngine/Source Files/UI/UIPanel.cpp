@@ -6,3 +6,5 @@
 //
 
 #include "UIPanel.h"
+
+void UIPanel::Init(EngineContext* context){}

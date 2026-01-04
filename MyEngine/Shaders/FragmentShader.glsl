@@ -12,7 +12,10 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoord;
 
-uniform sampler2D texture1;
+uniform sampler2D mainTexture;
+uniform sampler2D diffuseMap;
+uniform sampler2D specularMap;
+
 
 uniform vec4 materialAmbient = vec4(1, 1, 1, 1);
 uniform vec4 materialDiffuse = vec4(1, 1, 1, 1);
@@ -34,7 +37,7 @@ void main()
     vec3 lightDir = normalize(light_position - FragPos);
     vec3 viewDir = normalize(eyePosition - FragPos);
     
-    vec4 texColor = texture(texture1, TexCoord);
+    vec4 texColor = texture(mainTexture, TexCoord);
 
     vec3 ambient = materialAmbient.rgb * light_ambient.rgb * texColor.rgb;
 

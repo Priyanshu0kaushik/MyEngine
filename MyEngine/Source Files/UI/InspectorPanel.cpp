@@ -6,8 +6,7 @@
 //
 
 #include "InspectorPanel.h"
-#include "TextureManager.h"
-#include "MeshManager.h"
+#include "AssetManager.h"
 #include "Scene.h"
 
 void InspectorPanel::Draw(EditorDrawContext &context)
@@ -23,8 +22,7 @@ void InspectorPanel::Draw(EditorDrawContext &context)
         ShowTransformComponent();
         ShowCameraComponent();
         ShowMeshComponent();
-        ShowLoadMeshButton();
-        ShowLoadTextureButton();
+        ShowLoadAssetButton();
         
         if(ImGui::Button("Add Component"))
         {
@@ -101,7 +99,7 @@ void InspectorPanel::ShowMeshComponent()
     MeshComponent* mesh = m_Context.coordinator->GetComponent<MeshComponent>(*m_Context.selectedEntity);
     ImGui::SeparatorText("Mesh Component");
 
-    auto& allMeshes = MeshManager::Get().GetAllMeshes();
+    auto& allMeshes = AssetManager::Get().GetMeshManager().GetAllMeshes();
 
     std::string currentMeshName = "Unknown";
     
@@ -139,7 +137,7 @@ void InspectorPanel::ShowMeshComponent()
     
     ImGui::Separator();
     
-    auto& Textures = TextureManager::Get().GetAllTextures();
+    auto& Textures = AssetManager::Get().GetTextureManager().GetAllTextures();
 
     std::string currentTextureName = "Unknown";
     
@@ -244,29 +242,16 @@ void InspectorPanel::RenameRender()
     
 }
 
-void InspectorPanel::ShowLoadMeshButton()
+void InspectorPanel::ShowLoadAssetButton()
 {
-    ImGui::SeparatorText("Load Mesh");
-    char m_MeshPath[128] = "Path";
+    ImGui::SeparatorText("Load Asset");
+    char m_AssetPath[128] = "Path";
     bool pathEntered = ImGui::InputText(
-        "###MeshPath",
-         m_MeshPath,
-        IM_ARRAYSIZE(m_MeshPath),
+        "###AssetPath",
+        m_AssetPath,
+        IM_ARRAYSIZE(m_AssetPath),
         ImGuiInputTextFlags_EnterReturnsTrue
     );
 
-    if(pathEntered)m_Context.engine->PushMessage(std::make_unique<LoadMeshMessage>(m_MeshPath));
-}
-
-void InspectorPanel::ShowLoadTextureButton(){
-    ImGui::SeparatorText("Load Texture");
-    char m_TexturePath[128] = "Path";
-    bool pathEntered = ImGui::InputText(
-        "###TexturePath",
-        m_TexturePath,
-        IM_ARRAYSIZE(m_TexturePath),
-        ImGuiInputTextFlags_EnterReturnsTrue
-    );
-
-    if(pathEntered)m_Context.engine->PushMessage(std::make_unique<LoadTextureMessage>(m_TexturePath));
+    if(pathEntered)m_Context.engine->PushMessage(std::make_unique<LoadAssetMessage>(m_AssetPath));
 }

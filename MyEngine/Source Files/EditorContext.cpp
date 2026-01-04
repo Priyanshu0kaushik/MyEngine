@@ -18,6 +18,7 @@
 #include "imgui_impl_opengl3.h"
 #include "HierarchyPanel.h"
 #include "InspectorPanel.h"
+#include "ContentBrowserPanel.h"
 #include <iostream>
 #include <string>
 
@@ -82,6 +83,12 @@ void EditorContext::Init(GLFWwindow* aWindow, EngineContext* engine){
     context.selectedEntity = &m_SelectedEntity;
     UIPanels.push_back(new HierarchyPanel());
     UIPanels.push_back(new InspectorPanel());
+    UIPanels.push_back(new ContentBrowserPanel());
+    
+    for(UIPanel* UI : UIPanels){
+        UI->Init()(context);
+    }
+    
 }
 
 void EditorContext::BeginFrame(){

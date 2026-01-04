@@ -9,8 +9,9 @@
 #include "Scene.h"
 #include "EditorContext.h"
 #include "Texture.h"
-#include "TextureManager.h"
-#include "MeshManager.h"
+#include "AssetManager.h"
+#include "Project.h"
+
 
 
 
@@ -27,9 +28,8 @@ EngineContext::EngineContext(int width, int height, const char* title)
     InitWindow(width, height, title);
     InitViewportFramebuffer(500,500);
     //ImGUI
-    m_EditorContext = new EditorContext();
-    m_EditorContext->Init(m_Window, this);
-    
+
+    TestProjectSetupInit();
     // Components
     m_Coordinator->RegisterComponent<TransformComponent>();
     m_Coordinator->RegisterComponent<MeshComponent>();
@@ -56,17 +56,12 @@ EngineContext::EngineContext(int width, int height, const char* title)
     m_Scene = new Scene(*m_Coordinator, renderSystem, cameraSystem);
 
     m_MessageQueue = std::make_shared<MessageQueue>();
-    MeshManager::Allocate();
-    TextureManager::Allocate();
-    MeshManager::Get().SetMessageQueue(m_MessageQueue);
-    TextureManager::Get().SetMessageQueue(m_MessageQueue);
     
-    
-    PushMessage(std::make_unique<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/FortificationsLevel5.obj"));
-    PushMessage(std::make_unique<LoadMeshMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.obj"));
-    PushMessage(std::make_unique<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/fortifications.png"));
-    PushMessage(std::make_unique<LoadTextureMessage>("/Users/priyanshukaushik/Projects/MyEngine/MyEngine/Assets/Viking_House.png"));
+    AssetManager::Allocate();
+    AssetManager::Get().SetMessageQueue(m_MessageQueue);
 
+    m_EditorContext = new EditorContext();
+    m_EditorContext->Init(m_Window, this);
 
 }
 
@@ -123,6 +118,24 @@ void EngineContext::InitWindow(int width, int height, const char* title){
     std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     glEnable(GL_DEPTH_TEST);
 
+}
+
+void EngineContext::TestProjectSetupInit(){
+    std::string workspacePath = "/Users/priyanshukaushik/MyEngineProjects";
+    std::string projectName = "TestProject";
+    
+    std::filesystem::path projectFile = std::filesystem::path(workspacePath) / projectName / (projectName + ".meproject");
+
+    if (std::filesystem::exists(projectFile))
+    {
+        std::cout << "Loading existing project..." << std::endl;
+        Project::Load(projectFile);
+    }
+    else
+    {
+        std::cout << "Creating new project..." << std::endl;
+        Project::New(workspacePath, projectName);
+    }
 }
 
 void EngineContext::OnStartControlCam(){
@@ -187,8 +200,7 @@ void EngineContext::DeleteEntity(Entity aEntity){
 
 void EngineContext::SendMessage(std::unique_ptr<Message> msg)
 {
-    MeshManager::Get().ProcessMessage(msg.get());
-    TextureManager::Get().ProcessMessage(msg.get());
+    AssetManager::Get().ProcessMessage(msg.get());
 }
 
 void EngineContext::ProcessMessages(){
@@ -201,8 +213,7 @@ void EngineContext::ProcessMessages(){
 
 void EngineContext::Shutdown(){
     m_EditorContext->EndFrame();
-    MeshManager::DeAllocate();
-    TextureManager::DeAllocate();
+    AssetManager::DeAllocate();
     Cleanup();
     glfwTerminate();
 }

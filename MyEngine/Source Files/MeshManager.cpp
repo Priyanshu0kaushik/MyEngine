@@ -12,32 +12,10 @@
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 
-
-
-MeshManager* MeshManager::instance = nullptr;
-
-
-MeshManager::MeshManager ()
+MeshManager::MeshManager()
 {
     
 }
-void MeshManager::Allocate()
-{
-    assert(instance == nullptr);
-    if (instance) return;
-    instance = new MeshManager();
-}
-
-void MeshManager::DeAllocate(){
-    delete instance;
-}
-
-MeshManager& MeshManager::Get()
-{
-    return *instance;
-};
-
-
 
 uint32_t MeshManager::LoadMesh(const std::string& path)
 {
@@ -45,7 +23,7 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
     if (m_PathToID.find(path) != m_PathToID.end())
         return m_PathToID[path];
 
-    std::string binPath = path + ".asset";
+    std::string binPath = path + ".memesh";
     Mesh meshData;
 
     if (std::filesystem::exists(binPath))
@@ -145,7 +123,7 @@ uint32_t MeshManager::LoadMesh(const std::string& path)
         }
 
         file.close();
-        std::string binPath = path + ".asset";
+        std::string binPath = path + ".memesh";
         SaveMeshBinary(binPath, meshData);
     }
 
@@ -297,28 +275,3 @@ bool MeshManager::LoadMeshBinary(const std::string &path, Mesh &outMesh)
     return true;
 }
 
-void MeshManager::ProcessMessage(Message* msg)
-{
-    switch (msg->type)
-    {
-        case MessageType::LoadMesh:
-        {
-            auto loadMsg = static_cast<LoadMeshMessage*>(msg);
-            if(!loadMsg) return;
-            uint32_t id = LoadMesh(loadMsg->path);
-            
-            messageQueue->Push(std::make_unique<MeshLoadedMessage>(id, loadMsg->path.c_str()));
-            break;
-        }
-            
-        case MessageType::MeshLoaded:
-        {
-            auto loadedMsg = static_cast<MeshLoadedMessage*>(msg);
-            if(!loadedMsg) return;
-            std::cout << "Mesh loaded with ID: " << loadedMsg->meshID << std::endl;
-            break;
-        }
-        default:
-        {}
-    }
-}

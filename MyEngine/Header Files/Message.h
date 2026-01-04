@@ -6,64 +6,29 @@
 //
 #pragma once
 #include <iostream>
+#include "AssetTypes.h"
 
-enum class MessageType{
-    LoadMesh,
-    MeshLoaded,
-    LoadTexture,
-    TextureLoaded,
+enum class MessageType {
+   
+    LoadAsset,
+    AssetLoaded
 };
-
 struct Message{
     MessageType type;
     virtual ~Message() = default;
 };
 
-struct LoadMeshMessage : public Message
-{
+struct LoadAssetMessage : public Message {
     std::string path;
-
-    LoadMeshMessage(const char* p)
-    {
-        type = MessageType::LoadMesh;
-        path = p;
-    }
+    LoadAssetMessage(const std::string& p) : path(p) { type = MessageType::LoadAsset; }
 };
 
-struct LoadTextureMessage : public Message
-{
+struct AssetLoadedMessage : public Message {
+    uint32_t id;
     std::string path;
-
-    LoadTextureMessage(const char* p)
-    {
-        type = MessageType::LoadTexture;
-        path = p;
-    }
+    AssetType assetType;
+    
+    AssetLoadedMessage(uint32_t _id, std::string _path, AssetType _type)
+        : id(_id), path(_path), assetType(_type) { type = MessageType::AssetLoaded; }
 };
 
-struct TextureLoadedMessage : public Message
-{
-    uint32_t textureID;
-    std::string path;
-
-    TextureLoadedMessage(uint32_t id, const char* p)
-    {
-        type = MessageType::TextureLoaded;
-        textureID = id;
-        path = p;
-    }
-};
-
-
-struct MeshLoadedMessage : public Message
-{
-    uint32_t meshID;
-    std::string path;
-
-    MeshLoadedMessage(uint32_t id, const char* p)
-    {
-        type = MessageType::MeshLoaded;
-        meshID = id;
-        path = p;
-    }
-};

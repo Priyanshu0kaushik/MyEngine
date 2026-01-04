@@ -16,9 +16,7 @@ public:
     void ShowTransformComponent();
     void ShowMeshComponent();
     void ShowCameraComponent();
-    
-    void ShowLoadMeshButton();
-    void ShowLoadTextureButton();
+    void ShowLoadAssetButton();
     void RenameRender();
 
 private:
